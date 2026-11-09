@@ -1,5 +1,6 @@
 import { Controller, Get, Logger } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { AllowAnonymous } from '../auth/allow-anonymous.decorator';
 import {
   DiskHealthIndicator,
   HealthCheck,
@@ -10,6 +11,7 @@ import {
 
 const MB = 1024 * 1024;
 
+@AllowAnonymous()
 @ApiTags('health')
 @Controller('health')
 export class HealthController {

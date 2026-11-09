@@ -1,6 +1,10 @@
 import { ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { DiskHealthIndicator, TerminusModule, TypeOrmHealthIndicator } from '@nestjs/terminus';
+import {
+  DiskHealthIndicator,
+  TerminusModule,
+  TypeOrmHealthIndicator,
+} from '@nestjs/terminus';
 import { HealthController } from './health.controller';
 
 describe('HealthController', () => {
@@ -19,7 +23,10 @@ describe('HealthController', () => {
         }),
       })
       .overrideProvider(DiskHealthIndicator)
-      .useValue({ checkStorage: (key: string) => Promise.resolve({ [key]: { status: 'up' } }) })
+      .useValue({
+        checkStorage: (key: string) =>
+          Promise.resolve({ [key]: { status: 'up' } }),
+      })
       .compile();
     controller = module.get(HealthController);
   });
@@ -33,6 +40,8 @@ describe('HealthController', () => {
 
   it('returns 503 when the database is down', async () => {
     dbStatus.mockReturnValue('down');
-    await expect(controller.check()).rejects.toBeInstanceOf(ServiceUnavailableException);
+    await expect(controller.check()).rejects.toBeInstanceOf(
+      ServiceUnavailableException,
+    );
   });
 });

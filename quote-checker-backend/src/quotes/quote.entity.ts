@@ -3,13 +3,19 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { User } from '../users/user.entity';
 
 @Entity('quotes')
 export class Quote {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Index()
+  @ManyToOne(() => User, { nullable: false })
+  user: User;
 
   @Column()
   fullName: string;

@@ -1,0 +1,88 @@
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Logger,
+  Post,
+  Res,
+} from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiConflictResponse,
+  ApiCookieAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import type { Response } from 'express';
+import { UserResponseDto } from '../users/dto/user-response.dto';
+import { ACCESS_TOKEN_COOKIE } from './auth.constants';
+import { AllowAnonymous } from './allow-anonymous.decorator';
+import { AuthResult, AuthService } from './auth.service';
+import { CurrentUser } from './current-user.decorator';
+import { SignInDto } from './dto/sign-in.dto';
+import { SignUpDto } from './dto/sign-up.dto';
+import type { AuthUser } from './jwt-auth.guard';
+
+@ApiTags('auth')
+@Controller('auth')
+export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
+  constructor(private readonly authService: AuthService) {}
+
+  @AllowAnonymous()
+  @Post('signup')
+  @ApiCreatedResponse({ type: UserResponseDto })
+  @ApiBadRequestResponse({ description: 'Invalid request body' })
+  @ApiConflictResponse({ description: 'Email is already registered' })
+  async signUp(
+    @Body() dto: SignUpDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<UserResponseDto> {
+    this.logger.log('POST /api/auth/signup');
+    const result = await this.authService.signUp(dto);
+    this.logger.log('POST /api/auth/signup created', {
+      userId: result.user.id,
+    });
+    return this.setSessionCookie(res, result);
+  }
+
+  @AllowAnonymous()
+  @Post('signin')
+  @HttpCode(200)
+  @ApiOkResponse({ type: UserResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Invalid email or password' })
+  async signIn(
+    @Body() dto: SignInDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<UserResponseDto> {
+    this.logger.log('POST /api/auth/signin');
+    const result = await this.authService.signIn(dto);
+    this.logger.log('POST /api/auth/signin succeeded', {
+      userId: result.user.id,
+    });
+    return this.setSessionCookie(res, result);
+  }
+
+  @Get('me')
+  @ApiCookieAuth()
+  @ApiOkResponse({ type: UserResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Not signed in' })
+  me(@CurrentUser() user: AuthUser): Promise<UserResponseDto> {
+    this.logger.log('GET /api/auth/me', { userId: user.id });
+    return this.authService.me(user.id);
+  }
+
+  private setSessionCookie(res: Response, result: AuthResult): UserResponseDto {
+    res.cookie(ACCESS_TOKEN_COOKIE, result.accessToken, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+    return result.user;
+  }
+}
