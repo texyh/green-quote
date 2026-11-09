@@ -1,6 +1,5 @@
 #!/bin/bash
 # Blocks `git push` to main: explicit target (`git push origin main`, `HEAD:main`) or a bare push while on main.
-# ponytail: string match on the command; a server-side ruleset replaces this if the repo goes Pro/public.
 input=$(cat)
 cmd=$(jq -r '.tool_input.command // ""' <<<"$input")
 dir=$(jq -r '.cwd // "."' <<<"$input")
@@ -13,7 +12,6 @@ if echo "$cmd" | grep -qE 'push.*([ :]|refs/heads/)main([ ;&|]|$)'; then
 fi
 
 branch=$(git -C "$dir" branch --show-current 2>/dev/null)
-# non-flag args after `push`: 2+ means an explicit remote + refspec (already checked above)
 args=$(echo "$cmd" | sed -E 's/.*git( -C [^ ]+)? push//; s/[;&|].*//' | tr ' ' '\n' | grep -cvE '^(-.*)?$')
 if [ "$branch" = "main" ] && [ "${args:-0}" -lt 2 ]; then
   echo "Blocked: you're on main and this push would target it. Create a branch first." >&2
