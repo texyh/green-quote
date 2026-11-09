@@ -1,4 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Logger } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import {
   DiskHealthIndicator,
   HealthCheck,
@@ -9,8 +10,11 @@ import {
 
 const MB = 1024 * 1024;
 
+@ApiTags('health')
 @Controller('health')
 export class HealthController {
+  private readonly logger = new Logger(HealthController.name);
+
   constructor(
     private readonly health: HealthCheckService,
     private readonly db: TypeOrmHealthIndicator,
@@ -21,6 +25,7 @@ export class HealthController {
   @Get()
   @HealthCheck()
   check() {
+    this.logger.log('GET /api/health');
     return this.health.check([
       () => this.db.pingCheck('database').withTimeout(1500),
       () => this.memory.checkHeap('memory_heap', 300 * MB),

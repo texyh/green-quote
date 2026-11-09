@@ -7,7 +7,11 @@ import { HealthModule } from './health/health.module';
 import { QuotesModule } from './quotes/quotes.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot({ ...dataSourceOptions, autoLoadEntities: true }), HealthModule, QuotesModule],
+  imports: [
+    TypeOrmModule.forRoot({ ...dataSourceOptions, autoLoadEntities: true }),
+    HealthModule,
+    QuotesModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
