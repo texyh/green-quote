@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import AppShell from "./app-shell";
+import { ConfigProvider } from "antd";
+import type { ThemeConfig } from "antd";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,12 +9,24 @@ export const metadata: Metadata = {
   description: "Check your quotes",
 };
 
+const theme: ThemeConfig = {
+  token: {
+    colorPrimary: "#000",
+    colorInfo: "#000",
+    colorLink: "#000",
+    colorBgLayout: "#fff",
+  },
+  components: {
+    Menu: { itemSelectedBg: "#000", itemSelectedColor: "#fff" },
+  },
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
       <body>
         <AntdRegistry>
-          <AppShell>{children}</AppShell>
+          <ConfigProvider theme={theme}>{children}</ConfigProvider>
         </AntdRegistry>
       </body>
     </html>

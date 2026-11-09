@@ -1,14 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Form, Input, InputNumber, Typography } from "antd";
+import { getMe } from "@/lib/auth";
 import { createQuote, CreateQuoteRequest } from "@/lib/quotes";
 
 export default function QuoteForm() {
   const router = useRouter();
+  const [form] = Form.useForm<CreateQuoteRequest>();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string>();
+
+  useEffect(() => {
+    getMe()
+      .then((user) => form.setFieldsValue({ fullName: user.fullName, email: user.email }))
+      .catch(() => setError("Could not load your account details."));
+  }, [form]);
 
   const onFinish = async (values: CreateQuoteRequest) => {
     setSubmitting(true);
@@ -25,13 +33,13 @@ export default function QuoteForm() {
   return (
     <div style={{ maxWidth: 480 }}>
       <Typography.Title level={2}>Request a quote</Typography.Title>
-      <Form layout="vertical" onFinish={onFinish}>
+      <Form form={form} layout="vertical" onFinish={onFinish}>
         <Form.Item label="Full name" name="fullName" rules={[{ required: true }]}>
-          <Input />
+          <Input disabled />
         </Form.Item>
 
         <Form.Item label="Email" name="email" rules={[{ required: true, type: "email" }]}>
-          <Input />
+          <Input disabled />
         </Form.Item>
 
         <Form.Item label="Address" name="address" rules={[{ required: true }]}>

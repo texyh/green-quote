@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { User } from '../users/user.entity';
 import { CreateQuoteDto } from './dto/create-quote.dto';
 import { QuoteResponseDto } from './dto/quote-response.dto';
 import { Quote } from './quote.entity';
@@ -12,8 +13,9 @@ export class QuotesService {
     private readonly quotesRepository: Repository<Quote>,
   ) {}
 
-  async create(dto: CreateQuoteDto): Promise<QuoteResponseDto> {
+  async create(dto: CreateQuoteDto, userId: string): Promise<QuoteResponseDto> {
     const quote = this.quotesRepository.create(dto);
+    quote.user = { id: userId } as User;
     const saved = await this.quotesRepository.save(quote);
     return QuoteResponseDto.fromEntity(saved);
   }
