@@ -1,7 +1,5 @@
+import QuotesTable from "./quotes-table";
+
 export default function QuotesPage() {
-  return (
-    <main>
-      <h1>All quotes</h1>
-    </main>
-  );
+  return <QuotesTable />;
 }
