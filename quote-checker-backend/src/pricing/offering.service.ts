@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { OFFER_TERMS_YEARS } from './pricing.constants';
 
 export type Offer = {
   termYears: number;
@@ -10,8 +9,12 @@ export type Offer = {
 
 @Injectable()
 export class OfferingService {
-  calculateOffers(principal: number, apr: number): Offer[] {
-    return OFFER_TERMS_YEARS.map((termYears) => ({
+  calculateOffers(
+    principal: number,
+    apr: number,
+    termsYears: number[],
+  ): Offer[] {
+    return termsYears.map((termYears) => ({
       termYears,
       apr,
       principalUsed: principal,

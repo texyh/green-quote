@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Offer, OfferingService } from './offering.service';
-import { APR_BY_BAND, PRICE_PER_KW_EUR, RiskBand } from './pricing.constants';
+import {
+  APR_BY_BAND,
+  OFFER_TERMS_YEARS,
+  PRICE_PER_KW_EUR,
+  RiskBand,
+} from './pricing.constants';
 
 export type PricingInput = {
   systemSizeKw: number;
@@ -25,20 +30,30 @@ export class PricingService {
     monthlyConsumptionKwh,
     downPayment = 0,
   }: PricingInput): PricingResult {
-    const systemPrice = this.calculateSystemPrice(systemSizeKw);
+    const systemPrice = this.calculateSystemPrice(
+      systemSizeKw,
+      PRICE_PER_KW_EUR,
+    );
     const principalAmount = systemPrice - downPayment;
     const riskBand = this.calculateRiskBand(
       systemSizeKw,
       monthlyConsumptionKwh,
     );
-    const apr = this.calculateApr(riskBand);
-    const offers = this.offeringService.calculateOffers(principalAmount, apr);
+    const apr = this.calculateApr(riskBand, APR_BY_BAND);
+    const offers = this.offeringService.calculateOffers(
+      principalAmount,
+      apr,
+      OFFER_TERMS_YEARS,
+    );
 
     return { systemPrice, principalAmount, riskBand, apr, offers };
   }
 
-  calculateApr(riskBand: RiskBand): number {
-    return APR_BY_BAND[riskBand];
+  calculateApr(
+    riskBand: RiskBand,
+    aprByBand: Record<RiskBand, number>,
+  ): number {
+    return aprByBand[riskBand];
   }
 
   calculateRiskBand(
@@ -56,7 +71,7 @@ export class PricingService {
     return 'C';
   }
 
-  calculateSystemPrice(systemSizeKw: number): number {
-    return PRICE_PER_KW_EUR * systemSizeKw;
+  calculateSystemPrice(systemSizeKw: number, pricePerKw: number): number {
+    return pricePerKw * systemSizeKw;
   }
 }

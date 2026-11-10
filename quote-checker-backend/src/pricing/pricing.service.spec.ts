@@ -18,7 +18,7 @@ describe('PricingService', () => {
   });
 
   it('should calculate system price', () => {
-    const price = service.calculateSystemPrice(10);
+    const price = service.calculateSystemPrice(10, 1200);
 
     expect(price).toBe(12000);
   });
