@@ -16,9 +16,6 @@ const theme: ThemeConfig = {
     colorLink: "#000",
     colorBgLayout: "#fff",
   },
-  components: {
-    Menu: { itemSelectedBg: "#000", itemSelectedColor: "#fff" },
-  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

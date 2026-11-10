@@ -8,7 +8,7 @@ export function proxy(request: NextRequest) {
   const isPublic = PUBLIC_PATHS.includes(request.nextUrl.pathname);
 
   if (signedIn && isPublic) {
-    return NextResponse.redirect(new URL("/home", request.url));
+    return NextResponse.redirect(new URL("/quotes", request.url));
   }
   if (!signedIn && !isPublic) {
     return NextResponse.redirect(new URL("/signin", request.url));
@@ -17,5 +17,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/signin", "/signup", "/home", "/quotes/:path*"],
+  matcher: ["/", "/signin", "/signup", "/quotes/:path*"],
 };

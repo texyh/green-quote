@@ -17,7 +17,7 @@ export default function SignUpForm() {
     setError(undefined);
     try {
       await signUp(values);
-      router.push("/home");
+      router.push("/quotes");
     } catch (e) {
       setError(
         e instanceof ApiError && e.status === 409

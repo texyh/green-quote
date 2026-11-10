@@ -17,7 +17,7 @@ export default function SignInForm() {
     setError(undefined);
     try {
       await signIn(values);
-      router.push("/home");
+      router.push("/quotes");
     } catch (e) {
       setError(
         e instanceof ApiError && e.status === 401
