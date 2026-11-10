@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import type { RiskBand } from '../../pricing/pricing.constants';
 import { Quote } from '../quote.entity';
+import { OfferDto } from './offer.dto';
 
 export class QuoteResponseDto {
   @ApiProperty({ format: 'uuid' })
@@ -23,6 +25,21 @@ export class QuoteResponseDto {
   @ApiProperty({ example: 1000 })
   downPayment: number;
 
+  @ApiProperty({ example: 6000 })
+  systemPrice: number;
+
+  @ApiProperty({ example: 5000 })
+  principalAmount: number;
+
+  @ApiProperty({ enum: ['A', 'B', 'C'] })
+  riskBand: RiskBand;
+
+  @ApiProperty({ example: 6.9 })
+  apr: number;
+
+  @ApiProperty({ type: [OfferDto] })
+  offers: OfferDto[];
+
   @ApiProperty()
   createdAt: Date;
 
@@ -35,6 +52,11 @@ export class QuoteResponseDto {
       monthlyConsumptionKwh: Number(quote.monthlyConsumptionKwh),
       systemSizeKw: Number(quote.systemSizeKw),
       downPayment: Number(quote.downPayment),
+      systemPrice: Number(quote.systemPrice),
+      principalAmount: Number(quote.principalAmount),
+      riskBand: quote.riskBand,
+      apr: Number(quote.apr),
+      offers: quote.offers,
       createdAt: quote.createdAt,
     };
   }

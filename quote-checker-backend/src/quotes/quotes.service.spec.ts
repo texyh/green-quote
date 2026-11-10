@@ -1,15 +1,27 @@
 import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { OfferingService } from '../pricing/offering.service';
+import { PricingService } from '../pricing/pricing.service';
 import { Quote } from './quote.entity';
 import { QuotesService } from './quotes.service';
 
 describe('QuotesService', () => {
   const findAndCount = jest.fn();
   const findOneBy = jest.fn();
-  const service = new QuotesService({
-    findAndCount,
-    findOneBy,
-  } as unknown as Repository<Quote>);
+  const save = jest.fn((quote: Quote) =>
+    Promise.resolve(
+      Object.assign(quote, { id: 'quote-1', createdAt: new Date() }),
+    ),
+  );
+  const service = new QuotesService(
+    {
+      findAndCount,
+      findOneBy,
+      save,
+      create: (data: Partial<Quote>) => Object.assign(new Quote(), data),
+    } as unknown as Repository<Quote>,
+    new PricingService(new OfferingService()),
+  );
 
   const quote = Object.assign(new Quote(), {
     id: 'quote-1',
@@ -23,6 +35,33 @@ describe('QuotesService', () => {
   });
 
   beforeEach(() => jest.clearAllMocks());
+
+  describe('create', () => {
+    it('prices the quote and saves it under the signed-in user', async () => {
+      const result = await service.create(
+        {
+          fullName: 'Jane Doe',
+          email: 'jane@example.com',
+          address: 'Hauptstraße 1, 10115 Berlin',
+          monthlyConsumptionKwh: 450,
+          systemSizeKw: 5,
+          downPayment: 1000,
+        },
+        'user-1',
+      );
+
+      const saved = save.mock.calls[0][0];
+      expect(saved.user).toEqual({ id: 'user-1' });
+      expect(saved).toMatchObject({
+        systemPrice: 6000,
+        principalAmount: 5000,
+        riskBand: 'A',
+        apr: 6.9,
+      });
+      expect(saved.offers).toHaveLength(3);
+      expect(result).toMatchObject({ id: 'quote-1', systemPrice: 6000 });
+    });
+  });
 
   describe('findAllForUser', () => {
     it("returns one page of the user's quotes, newest first", async () => {
