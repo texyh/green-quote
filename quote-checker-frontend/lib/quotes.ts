@@ -15,6 +15,21 @@ export type Quote = CreateQuoteRequest & {
   createdAt: string;
 };
 
+export type QuoteList = {
+  items: Quote[];
+  total: number;
+  page: number;
+  limit: number;
+};
+
+export function listQuotes(page: number, limit: number): Promise<QuoteList> {
+  return request<QuoteList>(`/quotes?page=${page}&limit=${limit}`);
+}
+
+export function getQuote(id: string): Promise<Quote> {
+  return request<Quote>(`/quotes/${id}`);
+}
+
 export function createQuote(body: CreateQuoteRequest): Promise<Quote> {
   return request<Quote>("/quotes", {
     method: "POST",
