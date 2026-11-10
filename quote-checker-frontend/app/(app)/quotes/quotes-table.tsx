@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Alert, Button, Flex, Table, Typography } from "antd";
 import type { TableProps } from "antd";
+import { formatEur } from "@/lib/format";
 import { listQuotes, Quote, QuoteList } from "@/lib/quotes";
 
 const PAGE_SIZE = 10;
@@ -14,13 +15,9 @@ const columns: TableProps<Quote>["columns"] = [
     dataIndex: "createdAt",
     render: (createdAt: string) => new Date(createdAt).toLocaleDateString(),
   },
-  { title: "Address", dataIndex: "address" },
   { title: "System size", dataIndex: "systemSizeKw", render: (kw: number) => `${kw} kW` },
-  {
-    title: "Monthly consumption",
-    dataIndex: "monthlyConsumptionKwh",
-    render: (kwh: number) => `${kwh} kWh`,
-  },
+  { title: "Price", dataIndex: "systemPrice", render: (price: number) => formatEur(price) },
+  { title: "Band", dataIndex: "riskBand" },
   { title: "", key: "view", render: (_, quote) => <Link href={`/quotes/${quote.id}`}>View</Link> },
 ];
 

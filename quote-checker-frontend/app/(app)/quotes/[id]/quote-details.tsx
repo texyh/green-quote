@@ -2,9 +2,22 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Alert, Button, Descriptions, Result, Spin, Typography } from "antd";
+import { Alert, Button, Descriptions, Flex, Result, Spin, Table, Typography } from "antd";
+import type { TableProps } from "antd";
 import { ApiError } from "@/lib/api";
-import { getQuote, Quote } from "@/lib/quotes";
+import { formatEur } from "@/lib/format";
+import { getQuote, Offer, Quote } from "@/lib/quotes";
+
+const offerColumns: TableProps<Offer>["columns"] = [
+  { title: "Term", dataIndex: "termYears", render: (years: number) => `${years} years` },
+  { title: "APR", dataIndex: "apr", render: (apr: number) => `${apr}%` },
+  { title: "Principal", dataIndex: "principalUsed", render: (amount: number) => formatEur(amount) },
+  {
+    title: "Monthly payment",
+    dataIndex: "monthlyPayment",
+    render: (amount: number) => formatEur(amount),
+  },
+];
 
 export default function QuoteDetails({ id }: { id: string }) {
   const [quote, setQuote] = useState<Quote>();
@@ -32,11 +45,39 @@ export default function QuoteDetails({ id }: { id: string }) {
     );
   }
   if (error) return <Alert type="error" title="Could not load the quote. Please try again." />;
-  if (!quote) return <Spin />;
+  if (!quote) {
+    return (
+      <Flex justify="center" style={{ padding: 48 }}>
+        <Spin />
+      </Flex>
+    );
+  }
 
   return (
-    <div style={{ maxWidth: 640 }}>
-      <Typography.Title level={2}>Quote</Typography.Title>
+    <div style={{ maxWidth: 640, margin: "0 auto" }}>
+      <Typography.Title level={2}>Your pre-qualification</Typography.Title>
+      <Descriptions
+        bordered
+        column={1}
+        items={[
+          { label: "System price", children: formatEur(quote.systemPrice) },
+          { label: "Risk band", children: `${quote.riskBand} (${quote.apr}% APR)` },
+        ]}
+      />
+
+      <Typography.Title level={4} style={{ marginTop: 24 }}>
+        Offers
+      </Typography.Title>
+      <Table
+        rowKey="termYears"
+        columns={offerColumns}
+        dataSource={quote.offers}
+        pagination={false}
+      />
+
+      <Typography.Title level={4} style={{ marginTop: 24 }}>
+        Your request
+      </Typography.Title>
       <Descriptions
         bordered
         column={1}
@@ -47,7 +88,7 @@ export default function QuoteDetails({ id }: { id: string }) {
           { label: "Address", children: quote.address },
           { label: "Monthly consumption", children: `${quote.monthlyConsumptionKwh} kWh` },
           { label: "System size", children: `${quote.systemSizeKw} kW` },
-          { label: "Down payment", children: `€${quote.downPayment}` },
+          { label: "Down payment", children: formatEur(quote.downPayment) },
         ]}
       />
       <Link href="/quotes">
