@@ -16,8 +16,8 @@ export default function SignInForm() {
     setSubmitting(true);
     setError(undefined);
     try {
-      await signIn(values);
-      router.push("/quotes");
+      const user = await signIn(values);
+      router.push(user.role === "admin" ? "/admin/quotes" : "/quotes");
     } catch (e) {
       setError(
         e instanceof ApiError && e.status === 401
@@ -32,15 +32,25 @@ export default function SignInForm() {
     <div style={{ maxWidth: 400 }}>
       <Typography.Title level={2}>Sign in</Typography.Title>
       <Form layout="vertical" onFinish={onFinish}>
-        <Form.Item label="Email" name="email" rules={[{ required: true, type: "email" }]}>
+        <Form.Item
+          label="Email"
+          name="email"
+          rules={[{ required: true, type: "email" }]}
+        >
           <Input />
         </Form.Item>
 
-        <Form.Item label="Password" name="password" rules={[{ required: true }]}>
+        <Form.Item
+          label="Password"
+          name="password"
+          rules={[{ required: true }]}
+        >
           <Input.Password />
         </Form.Item>
 
-        {error && <Alert type="error" title={error} style={{ marginBottom: 16 }} />}
+        {error && (
+          <Alert type="error" title={error} style={{ marginBottom: 16 }} />
+        )}
 
         <Button htmlType="submit" loading={submitting}>
           Sign in

@@ -14,6 +14,10 @@ export function signUp(body: SignUpRequest): Promise<User> {
   return request<User>("/auth/signup", { method: "POST", body: JSON.stringify(body) });
 }
 
+export function signOut(): Promise<void> {
+  return request<void>("/auth/signout", { method: "POST" });
+}
+
 export function getMe(): Promise<User> {
   return request<User>("/auth/me");
 }
