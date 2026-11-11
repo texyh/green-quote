@@ -2,6 +2,7 @@ export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    public readonly field?: string,
   ) {
     super(message);
   }
@@ -14,7 +15,9 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!res.ok) {
-    throw new ApiError(res.status, `Request failed with status ${res.status}`);
+    const body = await res.json().catch(() => ({}));
+    const message = typeof body.message === "string" ? body.message : `Request failed with status ${res.status}`;
+    throw new ApiError(res.status, message, body.field);
   }
 
   if (res.status === 204) {
