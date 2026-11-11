@@ -30,7 +30,7 @@ Solar financing pre-qualification: a signed-in user requests a quote for a resid
 docker compose up --build
 ```
 
-This starts Postgres, the API and the frontend. The API runs migrations (including the admin seed) before it starts, and the frontend waits until the API is healthy. The compose file uses a demo `JWT_SECRET` (`change-me`); a real deployment must use a long random secret.
+This starts Postgres, the API and the frontend. The API runs migrations (including the admin seed) before it starts, and the frontend waits until the API is healthy. The `JWT_SECRET` in `docker-compose.yml` is for local demos only; a real deployment must use its own long random secret.
 
 ### Local development
 
