@@ -32,19 +32,33 @@ export default function SignUpForm() {
     <div style={{ width: "100%", maxWidth: 400 }}>
       <Typography.Title level={2}>Sign up</Typography.Title>
       <Form layout="vertical" onFinish={onFinish}>
-        <Form.Item label="Full name" name="fullName" rules={[{ required: true }]}>
+        <Form.Item
+          label="Full name"
+          name="fullName"
+          rules={[{ required: true }]}
+        >
           <Input />
         </Form.Item>
 
-        <Form.Item label="Email" name="email" rules={[{ required: true, type: "email" }]}>
+        <Form.Item
+          label="Email"
+          name="email"
+          rules={[{ required: true, type: "email" }]}
+        >
           <Input />
         </Form.Item>
 
-        <Form.Item label="Password" name="password" rules={[{ required: true, min: 8 }]}>
+        <Form.Item
+          label="Password"
+          name="password"
+          rules={[{ required: true, min: 8 }]}
+        >
           <Input.Password />
         </Form.Item>
 
-        {error && <Alert type="error" title={error} style={{ marginBottom: 16 }} />}
+        {error && (
+          <Alert type="error" title={error} style={{ marginBottom: 16 }} />
+        )}
 
         <Button htmlType="submit" loading={submitting}>
           Sign up

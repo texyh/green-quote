@@ -21,7 +21,10 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    const message = typeof body.message === "string" ? body.message : `Request failed with status ${res.status}`;
+    const message =
+      typeof body.message === "string"
+        ? body.message
+        : `Request failed with status ${res.status}`;
     throw new ApiError(res.status, message, body.field);
   }
 

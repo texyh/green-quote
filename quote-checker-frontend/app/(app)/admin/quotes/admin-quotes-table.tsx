@@ -27,10 +27,22 @@ const columns: TableProps<Quote>["columns"] = [
       </>
     ),
   },
-  { title: "System size", dataIndex: "systemSizeKw", render: (kw: number) => `${kw} kW` },
-  { title: "Price", dataIndex: "systemPrice", render: (price: number) => formatEur(price) },
+  {
+    title: "System size",
+    dataIndex: "systemSizeKw",
+    render: (kw: number) => `${kw} kW`,
+  },
+  {
+    title: "Price",
+    dataIndex: "systemPrice",
+    render: (price: number) => formatEur(price),
+  },
   { title: "Band", dataIndex: "riskBand" },
-  { title: "", key: "view", render: (_, quote) => <Link href={`/quotes/${quote.id}`}>View</Link> },
+  {
+    title: "",
+    key: "view",
+    render: (_, quote) => <Link href={`/quotes/${quote.id}`}>View</Link>,
+  },
 ];
 
 export default function AdminQuotesTable() {
@@ -71,7 +83,9 @@ export default function AdminQuotesTable() {
         style={{ maxWidth: 400, marginBottom: 16 }}
       />
 
-      {error && <Alert type="error" title={error} style={{ marginBottom: 16 }} />}
+      {error && (
+        <Alert type="error" title={error} style={{ marginBottom: 16 }} />
+      )}
 
       <Table
         rowKey="id"

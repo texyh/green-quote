@@ -2,16 +2,33 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Alert, Button, Descriptions, Flex, Result, Spin, Table, Typography } from "antd";
+import {
+  Alert,
+  Button,
+  Descriptions,
+  Flex,
+  Result,
+  Spin,
+  Table,
+  Typography,
+} from "antd";
 import type { TableProps } from "antd";
 import { ApiError } from "@/lib/api";
 import { formatEur } from "@/lib/format";
 import { getQuote, Offer, Quote } from "@/lib/quotes";
 
 const offerColumns: TableProps<Offer>["columns"] = [
-  { title: "Term", dataIndex: "termYears", render: (years: number) => `${years} years` },
+  {
+    title: "Term",
+    dataIndex: "termYears",
+    render: (years: number) => `${years} years`,
+  },
   { title: "APR", dataIndex: "apr", render: (apr: number) => `${apr}%` },
-  { title: "Principal", dataIndex: "principalUsed", render: (amount: number) => formatEur(amount) },
+  {
+    title: "Principal",
+    dataIndex: "principalUsed",
+    render: (amount: number) => formatEur(amount),
+  },
   {
     title: "Monthly payment",
     dataIndex: "monthlyPayment",
@@ -27,7 +44,11 @@ export default function QuoteDetails({ id }: { id: string }) {
     getQuote(id)
       .then(setQuote)
       .catch((e) =>
-        setError(e instanceof ApiError && (e.status === 404 || e.status === 400) ? "not-found" : "failed"),
+        setError(
+          e instanceof ApiError && (e.status === 404 || e.status === 400)
+            ? "not-found"
+            : "failed",
+        ),
       );
   }, [id]);
 
@@ -45,7 +66,9 @@ export default function QuoteDetails({ id }: { id: string }) {
     );
   }
   if (error) {
-    return <Alert type="error" title="Could not load the quote. Please try again." />;
+    return (
+      <Alert type="error" title="Could not load the quote. Please try again." />
+    );
   }
   if (!quote) {
     return (
@@ -63,7 +86,10 @@ export default function QuoteDetails({ id }: { id: string }) {
         column={1}
         items={[
           { label: "System price", children: formatEur(quote.systemPrice) },
-          { label: "Risk band", children: `${quote.riskBand} (${quote.apr}% APR)` },
+          {
+            label: "Risk band",
+            children: `${quote.riskBand} (${quote.apr}% APR)`,
+          },
         ]}
       />
 
@@ -84,11 +110,17 @@ export default function QuoteDetails({ id }: { id: string }) {
         bordered
         column={1}
         items={[
-          { label: "Date", children: new Date(quote.createdAt).toLocaleString() },
+          {
+            label: "Date",
+            children: new Date(quote.createdAt).toLocaleString(),
+          },
           { label: "Full name", children: quote.fullName },
           { label: "Email", children: quote.email },
           { label: "Address", children: quote.address },
-          { label: "Monthly consumption", children: `${quote.monthlyConsumptionKwh} kWh` },
+          {
+            label: "Monthly consumption",
+            children: `${quote.monthlyConsumptionKwh} kWh`,
+          },
           { label: "System size", children: `${quote.systemSizeKw} kW` },
           { label: "Down payment", children: formatEur(quote.downPayment) },
         ]}
