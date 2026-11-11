@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import type { AuthUser } from '../auth/guards/jwt-auth.guard';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -14,7 +15,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost) {
     const http = host.switchToHttp();
-    const request = http.getRequest<Request>();
+    const request = http.getRequest<Request & { user?: AuthUser }>();
     const response = http.getResponse<Response>();
 
     const statusCode =
@@ -32,6 +33,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       method: request.method,
       path: request.originalUrl.split('?')[0],
       statusCode,
+      userId: request.user?.id,
       error: this.errorMessage(exception, body),
     };
 

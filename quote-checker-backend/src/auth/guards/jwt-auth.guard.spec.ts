@@ -45,8 +45,20 @@ describe('JwtAuthGuard', () => {
 
   it('rejects a request without the cookie', async () => {
     const { context } = contextWith({});
-    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(
-      UnauthorizedException,
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      new UnauthorizedException('Missing session cookie'),
+    );
+  });
+
+  it('rejects an expired token', async () => {
+    const expired = await jwtService.signAsync({
+      sub: 'user-1',
+      role: 'user',
+      exp: Math.floor(Date.now() / 1000) - 60,
+    });
+    const { context } = contextWith({ access_token: expired });
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      new UnauthorizedException('Session expired'),
     );
   });
 
@@ -56,8 +68,8 @@ describe('JwtAuthGuard', () => {
       role: 'admin',
     });
     const { context } = contextWith({ access_token: forged });
-    await expect(guard.canActivate(context)).rejects.toBeInstanceOf(
-      UnauthorizedException,
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      new UnauthorizedException('Invalid session token'),
     );
   });
 });

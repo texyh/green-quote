@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
@@ -23,6 +23,12 @@ async function bootstrap() {
     SwaggerModule.createDocument(app, config),
   );
 
-  await app.listen(process.env.PORT ?? 3001);
+  const port = process.env.PORT ?? 3001;
+  await app.listen(port);
+  new Logger('Bootstrap').log({
+    message: 'API listening',
+    port: Number(port),
+    docs: '/api/docs',
+  });
 }
 void bootstrap();

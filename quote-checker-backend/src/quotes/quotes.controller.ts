@@ -81,7 +81,13 @@ export class QuotesController {
       downPayment: dto.downPayment,
     });
     const quote = await this.quotesService.create(dto, user.id);
-    this.logger.log({ message: 'POST /api/quotes created', quoteId: quote.id });
+    this.logger.log({
+      message: 'POST /api/quotes created',
+      quoteId: quote.id,
+      riskBand: quote.riskBand,
+      systemPrice: quote.systemPrice,
+      principalAmount: quote.principalAmount,
+    });
     return quote;
   }
 }

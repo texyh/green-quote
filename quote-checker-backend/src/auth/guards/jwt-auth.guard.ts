@@ -39,15 +39,19 @@ export class JwtAuthGuard implements CanActivate {
     const token = request.cookies?.[ACCESS_TOKEN_COOKIE] as string | undefined;
 
     if (!token) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Missing session cookie');
     }
 
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
       request.user = { id: payload.sub, role: payload.role };
       return true;
-    } catch {
-      throw new UnauthorizedException();
+    } catch (error) {
+      const expired =
+        error instanceof Error && error.name === 'TokenExpiredError';
+      throw new UnauthorizedException(
+        expired ? 'Session expired' : 'Invalid session token',
+      );
     }
   }
 }
