@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { OfferingService } from '../pricing/offering.service';
 import { PricingService } from '../pricing/pricing.service';
 import { Quote } from './quote.entity';
@@ -114,6 +114,36 @@ describe('QuotesService', () => {
       findOneBy.mockResolvedValue(quote);
       await service.findOneForUser('quote-1', { id: 'admin-1', role: 'admin' });
       expect(findOneBy).toHaveBeenCalledWith({ id: 'quote-1' });
+    });
+  });
+
+  describe('findAll (admin)', () => {
+    it('returns all quotes when there is no search', async () => {
+      findAndCount.mockResolvedValue([[quote], 1]);
+
+      await service.findAll({ page: 2, limit: 5 });
+
+      expect(findAndCount).toHaveBeenCalledWith({
+        where: [{}],
+        order: { createdAt: 'DESC' },
+        skip: 5,
+        take: 5,
+      });
+    });
+
+    it("matches the search against the owner's name or email", async () => {
+      findAndCount.mockResolvedValue([[quote], 1]);
+
+      await service.findAll({ page: 1, limit: 10, search: 'jane' });
+
+      expect(findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: [
+            { user: { fullName: ILike('%jane%') } },
+            { user: { email: ILike('%jane%') } },
+          ],
+        }),
+      );
     });
   });
 });

@@ -1,6 +1,6 @@
 import { Controller, Get, Logger } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { AllowAnonymous } from '../auth/allow-anonymous.decorator';
+import { AllowAnonymous } from '../auth/decorators/allow-anonymous.decorator';
 import {
   DiskHealthIndicator,
   HealthCheck,

@@ -1,7 +1,7 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { AllowAnonymous } from './allow-anonymous.decorator';
+import { AllowAnonymous } from '../decorators/allow-anonymous.decorator';
 import { AuthUser, JwtAuthGuard } from './jwt-auth.guard';
 
 class TestController {
