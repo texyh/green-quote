@@ -55,7 +55,21 @@ export default function QuoteForm() {
           <InputNumber min={0} style={{ width: "100%" }} />
         </Form.Item>
 
-        <Form.Item label="System size (kW)" name="systemSizeKw" rules={[{ required: true }]}>
+        <Form.Item
+          label="System size (kW)"
+          name="systemSizeKw"
+          rules={[
+            { required: true },
+            {
+              validator: (_, value?: number) => {
+                if (value === undefined || value === null || value > 0) {
+                  return Promise.resolve();
+                }
+                return Promise.reject(new Error("System size must be greater than 0"));
+              },
+            },
+          ]}
+        >
           <InputNumber min={0} style={{ width: "100%" }} />
         </Form.Item>
 
