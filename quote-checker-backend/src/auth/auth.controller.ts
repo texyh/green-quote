@@ -51,7 +51,8 @@ export class AuthController {
   ): Promise<UserResponseDto> {
     this.logger.log('POST /api/auth/signup');
     const result = await this.authService.signUp(dto);
-    this.logger.log('POST /api/auth/signup created', {
+    this.logger.log({
+      message: 'POST /api/auth/signup created',
       userId: result.user.id,
     });
     return this.setSessionCookie(res, result);
@@ -68,7 +69,8 @@ export class AuthController {
   ): Promise<UserResponseDto> {
     this.logger.log('POST /api/auth/signin');
     const result = await this.authService.signIn(dto);
-    this.logger.log('POST /api/auth/signin succeeded', {
+    this.logger.log({
+      message: 'POST /api/auth/signin succeeded',
       userId: result.user.id,
     });
     return this.setSessionCookie(res, result);
@@ -88,7 +90,7 @@ export class AuthController {
   @ApiOkResponse({ type: UserResponseDto })
   @ApiUnauthorizedResponse({ description: 'Not signed in' })
   me(@CurrentUser() user: AuthUser): Promise<UserResponseDto> {
-    this.logger.log('GET /api/auth/me', { userId: user.id });
+    this.logger.log({ message: 'GET /api/auth/me', userId: user.id });
     return this.authService.me(user.id);
   }
 

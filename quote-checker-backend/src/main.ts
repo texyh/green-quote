@@ -1,14 +1,13 @@
-import { ConsoleLogger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { ACCESS_TOKEN_COOKIE } from './auth/auth.constants';
+import { logger } from './common/logger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: new ConsoleLogger({ json: true }),
-  });
+  const app = await NestFactory.create(AppModule, { logger });
 
   app.setGlobalPrefix('api');
   app.use(cookieParser());

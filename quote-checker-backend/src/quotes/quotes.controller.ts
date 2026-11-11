@@ -41,7 +41,8 @@ export class QuotesController {
     @Query() query: ListQuotesQueryDto,
     @CurrentUser() user: AuthUser,
   ): Promise<QuoteListResponseDto> {
-    this.logger.log('GET /api/quotes', {
+    this.logger.log({
+      message: 'GET /api/quotes',
       userId: user.id,
       page: query.page,
       limit: query.limit,
@@ -57,7 +58,11 @@ export class QuotesController {
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthUser,
   ): Promise<QuoteResponseDto> {
-    this.logger.log('GET /api/quotes/:id', { userId: user.id, quoteId: id });
+    this.logger.log({
+      message: 'GET /api/quotes/:id',
+      userId: user.id,
+      quoteId: id,
+    });
     return this.quotesService.findOneForUser(id, user);
   }
 
@@ -68,14 +73,15 @@ export class QuotesController {
     @Body() dto: CreateQuoteDto,
     @CurrentUser() user: AuthUser,
   ): Promise<QuoteResponseDto> {
-    this.logger.log('POST /api/quotes', {
+    this.logger.log({
+      message: 'POST /api/quotes',
       userId: user.id,
       monthlyConsumptionKwh: dto.monthlyConsumptionKwh,
       systemSizeKw: dto.systemSizeKw,
       downPayment: dto.downPayment,
     });
     const quote = await this.quotesService.create(dto, user.id);
-    this.logger.log('POST /api/quotes created', { quoteId: quote.id });
+    this.logger.log({ message: 'POST /api/quotes created', quoteId: quote.id });
     return quote;
   }
 }
