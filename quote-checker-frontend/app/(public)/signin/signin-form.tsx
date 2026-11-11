@@ -29,7 +29,7 @@ export default function SignInForm() {
   };
 
   return (
-    <div style={{ maxWidth: 400 }}>
+    <div style={{ width: "100%", maxWidth: 400 }}>
       <Typography.Title level={2}>Sign in</Typography.Title>
       <Form layout="vertical" onFinish={onFinish}>
         <Form.Item

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, Layout, Space, Typography } from "antd";
+import { Button, Flex, Layout, Typography } from "antd";
 import { getMe, signOut, User } from "@/lib/auth";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -31,19 +31,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          gap: 16,
         }}
       >
-        <Link href="/quotes">
+        <Link href="/quotes" style={{ whiteSpace: "nowrap" }}>
           <Typography.Text strong>GreenQuote</Typography.Text>
         </Link>
         {user && (
-          <Space size="large">
+          <Flex align="center" gap={16} style={{ minWidth: 0 }}>
             {user.role === "admin" && <Link href="/admin/quotes">Admin</Link>}
-            <Typography.Text>{user.email}</Typography.Text>
+            <Typography.Text ellipsis style={{ maxWidth: "min(240px, 35vw)" }}>
+              {user.email}
+            </Typography.Text>
             <Button size="small" onClick={onSignOut}>
               Sign out
             </Button>
-          </Space>
+          </Flex>
         )}
       </Layout.Header>
       <Layout.Content style={{ padding: 24 }}>{children}</Layout.Content>

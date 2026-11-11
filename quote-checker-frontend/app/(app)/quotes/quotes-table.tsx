@@ -48,6 +48,7 @@ export default function QuotesTable() {
 
       <Table
         rowKey="id"
+        scroll={{ x: "max-content" }}
         columns={columns}
         dataSource={data?.items}
         loading={!data && !error}

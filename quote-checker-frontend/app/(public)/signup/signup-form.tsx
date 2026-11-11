@@ -29,7 +29,7 @@ export default function SignUpForm() {
   };
 
   return (
-    <div style={{ maxWidth: 400 }}>
+    <div style={{ width: "100%", maxWidth: 400 }}>
       <Typography.Title level={2}>Sign up</Typography.Title>
       <Form layout="vertical" onFinish={onFinish}>
         <Form.Item label="Full name" name="fullName" rules={[{ required: true }]}>

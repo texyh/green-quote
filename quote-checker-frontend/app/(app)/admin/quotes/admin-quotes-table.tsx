@@ -75,6 +75,7 @@ export default function AdminQuotesTable() {
 
       <Table
         rowKey="id"
+        scroll={{ x: "max-content" }}
         columns={columns}
         dataSource={data?.items}
         loading={!data && !error}
