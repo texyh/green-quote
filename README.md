@@ -19,14 +19,23 @@ Solar financing pre-qualification: a signed-in user requests a quote for a resid
 
 ## Prerequisites
 
-- Node.js 24 (LTS)
-- pnpm (`corepack enable pnpm`)
 - Docker
+- For local development without Docker: Node.js 24 (LTS) and pnpm (`corepack enable pnpm`)
 
 ## Getting started
 
+### With Docker (everything)
+
 ```bash
-docker compose up -d
+docker compose up --build
+```
+
+This starts Postgres, the API and the frontend. The API runs migrations (including the admin seed) before it starts, and the frontend waits until the API is healthy. The `JWT_SECRET` in `docker-compose.yml` is for local demos only; a real deployment must use its own long random secret.
+
+### Local development
+
+```bash
+docker compose up -d db
 
 cd quote-checker-backend
 cp .env.example .env
