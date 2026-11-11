@@ -15,10 +15,22 @@ const columns: TableProps<Quote>["columns"] = [
     dataIndex: "createdAt",
     render: (createdAt: string) => new Date(createdAt).toLocaleDateString(),
   },
-  { title: "System size", dataIndex: "systemSizeKw", render: (kw: number) => `${kw} kW` },
-  { title: "Price", dataIndex: "systemPrice", render: (price: number) => formatEur(price) },
+  {
+    title: "System size",
+    dataIndex: "systemSizeKw",
+    render: (kw: number) => `${kw} kW`,
+  },
+  {
+    title: "Price",
+    dataIndex: "systemPrice",
+    render: (price: number) => formatEur(price),
+  },
   { title: "Band", dataIndex: "riskBand" },
-  { title: "", key: "view", render: (_, quote) => <Link href={`/quotes/${quote.id}`}>View</Link> },
+  {
+    title: "",
+    key: "view",
+    render: (_, quote) => <Link href={`/quotes/${quote.id}`}>View</Link>,
+  },
 ];
 
 export default function QuotesTable() {
@@ -44,7 +56,9 @@ export default function QuotesTable() {
         </Link>
       </Flex>
 
-      {error && <Alert type="error" title={error} style={{ marginBottom: 16 }} />}
+      {error && (
+        <Alert type="error" title={error} style={{ marginBottom: 16 }} />
+      )}
 
       <Table
         rowKey="id"
@@ -52,7 +66,13 @@ export default function QuotesTable() {
         columns={columns}
         dataSource={data?.items}
         loading={!data && !error}
-        locale={{ emptyText: <Link href="/quotes/new">No quotes yet. Request your first one.</Link> }}
+        locale={{
+          emptyText: (
+            <Link href="/quotes/new">
+              No quotes yet. Request your first one.
+            </Link>
+          ),
+        }}
         pagination={{
           current: page,
           pageSize: PAGE_SIZE,

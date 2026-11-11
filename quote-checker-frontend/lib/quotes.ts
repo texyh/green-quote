@@ -38,8 +38,15 @@ export function listQuotes(page: number, limit: number): Promise<QuoteList> {
   return request<QuoteList>(`/quotes?page=${page}&limit=${limit}`);
 }
 
-export function listAllQuotes(page: number, limit: number, search: string): Promise<QuoteList> {
-  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+export function listAllQuotes(
+  page: number,
+  limit: number,
+  search: string,
+): Promise<QuoteList> {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
   if (search) {
     params.set("search", search);
   }

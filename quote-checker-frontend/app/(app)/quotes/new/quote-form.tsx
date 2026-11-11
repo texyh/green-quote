@@ -15,7 +15,9 @@ export default function QuoteForm() {
 
   useEffect(() => {
     getMe()
-      .then((user) => form.setFieldsValue({ fullName: user.fullName, email: user.email }))
+      .then((user) =>
+        form.setFieldsValue({ fullName: user.fullName, email: user.email }),
+      )
       .catch(() => setError("Could not load your account details."));
   }, [form]);
 
@@ -26,7 +28,11 @@ export default function QuoteForm() {
       const quote = await createQuote(values);
       router.push(`/quotes/${quote.id}`);
     } catch (e) {
-      if (e instanceof ApiError && e.status === 400 && e.field === "downPayment") {
+      if (
+        e instanceof ApiError &&
+        e.status === 400 &&
+        e.field === "downPayment"
+      ) {
         form.setFields([{ name: "downPayment", errors: [e.message] }]);
       } else {
         setError("Could not create the quote. Please try again.");
@@ -39,11 +45,19 @@ export default function QuoteForm() {
     <div style={{ maxWidth: 480, margin: "0 auto" }}>
       <Typography.Title level={2}>Request a quote</Typography.Title>
       <Form form={form} layout="vertical" onFinish={onFinish}>
-        <Form.Item label="Full name" name="fullName" rules={[{ required: true }]}>
+        <Form.Item
+          label="Full name"
+          name="fullName"
+          rules={[{ required: true }]}
+        >
           <Input disabled />
         </Form.Item>
 
-        <Form.Item label="Email" name="email" rules={[{ required: true, type: "email" }]}>
+        <Form.Item
+          label="Email"
+          name="email"
+          rules={[{ required: true, type: "email" }]}
+        >
           <Input disabled />
         </Form.Item>
 
@@ -51,7 +65,11 @@ export default function QuoteForm() {
           <Input />
         </Form.Item>
 
-        <Form.Item label="Monthly consumption (kWh)" name="monthlyConsumptionKwh" rules={[{ required: true }]}>
+        <Form.Item
+          label="Monthly consumption (kWh)"
+          name="monthlyConsumptionKwh"
+          rules={[{ required: true }]}
+        >
           <InputNumber min={0} style={{ width: "100%" }} />
         </Form.Item>
 
@@ -65,7 +83,9 @@ export default function QuoteForm() {
                 if (value === undefined || value === null || value > 0) {
                   return Promise.resolve();
                 }
-                return Promise.reject(new Error("System size must be greater than 0"));
+                return Promise.reject(
+                  new Error("System size must be greater than 0"),
+                );
               },
             },
           ]}
@@ -77,7 +97,9 @@ export default function QuoteForm() {
           <InputNumber min={0} style={{ width: "100%" }} />
         </Form.Item>
 
-        {error && <Alert type="error" title={error} style={{ marginBottom: 16 }} />}
+        {error && (
+          <Alert type="error" title={error} style={{ marginBottom: 16 }} />
+        )}
 
         <Button htmlType="submit" loading={submitting}>
           Get pre-qualification
