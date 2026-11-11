@@ -9,9 +9,21 @@ export type CreateQuoteRequest = {
   downPayment?: number;
 };
 
+export type Offer = {
+  termYears: number;
+  apr: number;
+  principalUsed: number;
+  monthlyPayment: number;
+};
+
 export type Quote = CreateQuoteRequest & {
   id: string;
   downPayment: number;
+  systemPrice: number;
+  principalAmount: number;
+  riskBand: "A" | "B" | "C";
+  apr: number;
+  offers: Offer[];
   createdAt: string;
 };
 

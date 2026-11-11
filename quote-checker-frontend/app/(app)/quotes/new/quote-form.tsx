@@ -31,7 +31,7 @@ export default function QuoteForm() {
   };
 
   return (
-    <div style={{ maxWidth: 480 }}>
+    <div style={{ maxWidth: 480, margin: "0 auto" }}>
       <Typography.Title level={2}>Request a quote</Typography.Title>
       <Form form={form} layout="vertical" onFinish={onFinish}>
         <Form.Item label="Full name" name="fullName" rules={[{ required: true }]}>
