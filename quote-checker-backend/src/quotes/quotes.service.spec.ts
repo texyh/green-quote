@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ILike, Repository } from 'typeorm';
 import { OfferingService } from '../pricing/offering.service';
 import { PricingService } from '../pricing/pricing.service';
@@ -60,6 +60,42 @@ describe('QuotesService', () => {
       });
       expect(saved.offers).toHaveLength(3);
       expect(result).toMatchObject({ id: 'quote-1', systemPrice: 6000 });
+    });
+
+    it('rejects a down payment above the system price without saving', async () => {
+      const create = service.create(
+        {
+          fullName: 'Jane Doe',
+          email: 'jane@example.com',
+          address: 'Hauptstraße 1, 10115 Berlin',
+          monthlyConsumptionKwh: 450,
+          systemSizeKw: 5,
+          downPayment: 6000.01,
+        },
+        'user-1',
+      );
+
+      await expect(create).rejects.toBeInstanceOf(BadRequestException);
+      await expect(create).rejects.toMatchObject({
+        response: { field: 'downPayment' },
+      });
+      expect(save).not.toHaveBeenCalled();
+    });
+
+    it('allows a down payment equal to the system price', async () => {
+      const result = await service.create(
+        {
+          fullName: 'Jane Doe',
+          email: 'jane@example.com',
+          address: 'Hauptstraße 1, 10115 Berlin',
+          monthlyConsumptionKwh: 450,
+          systemSizeKw: 5,
+          downPayment: 6000,
+        },
+        'user-1',
+      );
+
+      expect(result).toMatchObject({ principalAmount: 0 });
     });
   });
 

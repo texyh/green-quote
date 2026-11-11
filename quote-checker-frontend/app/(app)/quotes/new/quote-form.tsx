@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Form, Input, InputNumber, Typography } from "antd";
+import { ApiError } from "@/lib/api";
 import { getMe } from "@/lib/auth";
 import { createQuote, CreateQuoteRequest } from "@/lib/quotes";
 
@@ -24,8 +25,12 @@ export default function QuoteForm() {
     try {
       const quote = await createQuote(values);
       router.push(`/quotes/${quote.id}`);
-    } catch {
-      setError("Could not create the quote. Please try again.");
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 400 && e.field === "downPayment") {
+        form.setFields([{ name: "downPayment", errors: [e.message] }]);
+      } else {
+        setError("Could not create the quote. Please try again.");
+      }
       setSubmitting(false);
     }
   };

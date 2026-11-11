@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import type { AuthUser } from '../auth/guards/jwt-auth.guard';
@@ -21,6 +25,13 @@ export class QuotesService {
 
   async create(dto: CreateQuoteDto, userId: string): Promise<QuoteResponseDto> {
     const pricing = this.pricingService.calculate(dto);
+
+    if (pricing.principalAmount < 0) {
+      throw new BadRequestException({
+        field: 'downPayment',
+        message: `Down payment cannot exceed the system price of €${pricing.systemPrice}`,
+      });
+    }
 
     const quote = this.quotesRepository.create(dto);
     quote.user = { id: userId } as User;
