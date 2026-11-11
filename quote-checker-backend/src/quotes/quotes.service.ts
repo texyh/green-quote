@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import type { AuthUser } from '../auth/jwt-auth.guard';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
+import type { AuthUser } from '../auth/guards/jwt-auth.guard';
 import { PricingService } from '../pricing/pricing.service';
 import { User } from '../users/user.entity';
+import { AdminListQuotesQueryDto } from './dto/admin-list-quotes-query.dto';
 import { CreateQuoteDto } from './dto/create-quote.dto';
 import { ListQuotesQueryDto } from './dto/list-quotes-query.dto';
 import { QuoteListResponseDto } from './dto/quote-list-response.dto';
@@ -36,16 +37,39 @@ export class QuotesService {
     const quote = await this.quotesRepository.findOneBy(
       user.role === 'admin' ? { id } : { id, user: { id: user.id } },
     );
-    if (!quote) throw new NotFoundException('Quote not found');
+
+    if (!quote) {
+      throw new NotFoundException('Quote not found');
+    }
     return QuoteResponseDto.fromEntity(quote);
   }
 
-  async findAllForUser(
+  findAllForUser(
     userId: string,
+    query: ListQuotesQueryDto,
+  ): Promise<QuoteListResponseDto> {
+    return this.paginate({ user: { id: userId } }, query);
+  }
+
+  findAll({
+    search,
+    ...query
+  }: AdminListQuotesQueryDto): Promise<QuoteListResponseDto> {
+    const where: FindOptionsWhere<Quote>[] = search
+      ? [
+          { user: { fullName: ILike(`%${search}%`) } },
+          { user: { email: ILike(`%${search}%`) } },
+        ]
+      : [{}];
+    return this.paginate(where, query);
+  }
+
+  private async paginate(
+    where: FindOptionsWhere<Quote> | FindOptionsWhere<Quote>[],
     { page, limit }: ListQuotesQueryDto,
   ): Promise<QuoteListResponseDto> {
     const [quotes, total] = await this.quotesRepository.findAndCount({
-      where: { user: { id: userId } },
+      where,
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,

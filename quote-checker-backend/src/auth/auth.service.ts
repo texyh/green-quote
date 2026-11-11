@@ -44,7 +44,9 @@ export class AuthService {
 
   async me(userId: string): Promise<UserResponseDto> {
     const user = await this.usersService.findById(userId);
-    if (!user) throw new UnauthorizedException();
+    if (!user) {
+      throw new UnauthorizedException();
+    }
     return UserResponseDto.fromEntity(user);
   }
 

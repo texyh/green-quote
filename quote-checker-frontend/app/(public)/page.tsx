@@ -8,7 +8,8 @@ export default function LandingPage() {
     <div style={{ maxWidth: 480, textAlign: "center" }}>
       <Typography.Title>GreenQuote</Typography.Title>
       <Typography.Paragraph>
-        Find out in a minute whether you pre-qualify for financing your solar system.
+        Find out in a minute whether you pre-qualify for financing your solar
+        system.
       </Typography.Paragraph>
       <Space>
         <Link href="/signin">

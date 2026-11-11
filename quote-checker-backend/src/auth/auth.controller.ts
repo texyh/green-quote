@@ -12,19 +12,26 @@ import {
   ApiConflictResponse,
   ApiCookieAuth,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import type { Response } from 'express';
+import type { CookieOptions, Response } from 'express';
 import { UserResponseDto } from '../users/dto/user-response.dto';
 import { ACCESS_TOKEN_COOKIE } from './auth.constants';
-import { AllowAnonymous } from './allow-anonymous.decorator';
+import { AllowAnonymous } from './decorators/allow-anonymous.decorator';
 import { AuthResult, AuthService } from './auth.service';
-import { CurrentUser } from './current-user.decorator';
+import { CurrentUser } from './decorators/current-user.decorator';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
-import type { AuthUser } from './jwt-auth.guard';
+import type { AuthUser } from './guards/jwt-auth.guard';
+
+const sessionCookieOptions: CookieOptions = {
+  httpOnly: true,
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production',
+};
 
 @ApiTags('auth')
 @Controller('auth')
@@ -67,6 +74,15 @@ export class AuthController {
     return this.setSessionCookie(res, result);
   }
 
+  @AllowAnonymous()
+  @Post('signout')
+  @HttpCode(204)
+  @ApiNoContentResponse({ description: 'Session cookie cleared' })
+  signOut(@Res({ passthrough: true }) res: Response): void {
+    this.logger.log('POST /api/auth/signout');
+    res.clearCookie(ACCESS_TOKEN_COOKIE, sessionCookieOptions);
+  }
+
   @Get('me')
   @ApiCookieAuth()
   @ApiOkResponse({ type: UserResponseDto })
@@ -78,10 +94,8 @@ export class AuthController {
 
   private setSessionCookie(res: Response, result: AuthResult): UserResponseDto {
     res.cookie(ACCESS_TOKEN_COOKIE, result.accessToken, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000,
+      ...sessionCookieOptions,
+      maxAge: 60 * 60 * 1000,
     });
     return result.user;
   }

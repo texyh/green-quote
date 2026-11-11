@@ -44,7 +44,9 @@ export default function QuoteDetails({ id }: { id: string }) {
       />
     );
   }
-  if (error) return <Alert type="error" title="Could not load the quote. Please try again." />;
+  if (error) {
+    return <Alert type="error" title="Could not load the quote. Please try again." />;
+  }
   if (!quote) {
     return (
       <Flex justify="center" style={{ padding: 48 }}>

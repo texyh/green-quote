@@ -4,12 +4,12 @@ Solar financing pre-qualification: a signed-in user requests a quote for a resid
 
 ## Status
 
-| Area | Done | Not yet |
-|---|---|---|
-| Frontend | Quote form with client-side validation, sidebar layout | Quote result page, quotes list, admin view |
-| Backend | `POST /api/quotes` (validate + save), `GET /api/health`, Swagger | Pricing model, `GET /api/quotes/:id` |
-| Auth | – | Registration, login, ownership checks, seeded admin |
-| Infra | Postgres via docker compose, migrations | App Dockerfile |
+| Area     | Done                                                             | Not yet                                             |
+| -------- | ---------------------------------------------------------------- | --------------------------------------------------- |
+| Frontend | Quote form with client-side validation, sidebar layout           | Quote result page, quotes list, admin view          |
+| Backend  | `POST /api/quotes` (validate + save), `GET /api/health`, Swagger | Pricing model, `GET /api/quotes/:id`                |
+| Auth     | –                                                                | Registration, login, ownership checks, seeded admin |
+| Infra    | Postgres via docker compose, migrations                          | App Dockerfile                                      |
 
 ## Stack
 
@@ -39,25 +39,25 @@ pnpm install
 pnpm dev
 ```
 
-| URL | What |
-|---|---|
-| http://localhost:3000 | Frontend |
-| http://localhost:3001/api | Backend API |
-| http://localhost:3001/api/docs | Swagger docs |
+| URL                              | What         |
+| -------------------------------- | ------------ |
+| http://localhost:3000            | Frontend     |
+| http://localhost:3001/api        | Backend API  |
+| http://localhost:3001/api/docs   | Swagger docs |
 | http://localhost:3001/api/health | Health check |
 
 Postgres runs on host port **5433**.
 
 ## Scripts (backend)
 
-| Command | What it does |
-|---|---|
-| `pnpm start:dev` | Start the API with reload |
-| `pnpm test` | Unit tests |
-| `pnpm lint` | Lint |
-| `pnpm migration:generate <Name>` | Generate a migration from entity changes |
-| `pnpm migration:create <Name>` | Create an empty migration |
-| `pnpm migration:run` / `migration:revert` | Apply / undo migrations |
+| Command                                   | What it does                             |
+| ----------------------------------------- | ---------------------------------------- |
+| `pnpm start:dev`                          | Start the API with reload                |
+| `pnpm test`                               | Unit tests                               |
+| `pnpm lint`                               | Lint                                     |
+| `pnpm migration:generate <Name>`          | Generate a migration from entity changes |
+| `pnpm migration:create <Name>`            | Create an empty migration                |
+| `pnpm migration:run` / `migration:revert` | Apply / undo migrations                  |
 
 ## Project structure
 
@@ -71,6 +71,15 @@ quote-checker-backend/    NestJS API
   src/health/             Health check (Terminus)
   src/database/           Data source and migrations
 ```
+
+## Admin
+
+The `AdminSeed` migration creates an admin account when you run `pnpm migration:run`:
+
+| Email | Password |
+|---|---|
+| `admin@test.com` | `pass@test` |
+
 
 ## Decisions
 
