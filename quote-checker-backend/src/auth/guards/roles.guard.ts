@@ -29,7 +29,7 @@ export class RolesGuard implements CanActivate {
       .getRequest<Request & { user?: AuthUser }>();
 
     if (!user || !roles.includes(user.role)) {
-      throw new ForbiddenException();
+      throw new ForbiddenException(`Requires role: ${roles.join(', ')}`);
     }
 
     return true;

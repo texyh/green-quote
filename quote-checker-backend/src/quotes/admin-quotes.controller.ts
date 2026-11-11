@@ -30,7 +30,8 @@ export class AdminQuotesController {
     @Query() query: AdminListQuotesQueryDto,
     @CurrentUser() user: AuthUser,
   ): Promise<QuoteListResponseDto> {
-    this.logger.log('GET /api/admin/quotes', {
+    this.logger.log({
+      message: 'GET /api/admin/quotes',
       userId: user.id,
       page: query.page,
       limit: query.limit,
