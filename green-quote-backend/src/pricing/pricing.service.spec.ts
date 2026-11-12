@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { OfferingService } from './offering.service';
 import { PricingService } from './pricing.service';
@@ -7,7 +8,14 @@ describe('PricingService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [PricingService, OfferingService],
+      providers: [
+        PricingService,
+        OfferingService,
+        {
+          provide: ConfigService,
+          useValue: new ConfigService({ PRICE_PER_KW_EUR: '1200' }),
+        },
+      ],
     }).compile();
 
     service = module.get<PricingService>(PricingService);
@@ -47,5 +55,17 @@ describe('PricingService', () => {
 
     expect(result.principalAmount).toBe(5000);
     expect(result.offers[0].principalUsed).toBe(5000);
+  });
+
+  it('uses PRICE_PER_KW_EUR from the config', () => {
+    const service = new PricingService(
+      new OfferingService(),
+      new ConfigService({ PRICE_PER_KW_EUR: '1000' }),
+    );
+
+    expect(
+      service.calculate({ systemSizeKw: 5, monthlyConsumptionKwh: 450 })
+        .systemPrice,
+    ).toBe(5000);
   });
 });

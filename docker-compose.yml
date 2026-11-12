@@ -22,6 +22,10 @@ services:
       JWT_SECRET: 4de034df-5827-4076-b2d5-4e87b75ad660
       PORT: 3001
       LOG_LEVEL: info
+      SESSION_TTL_SECONDS: 3600
+      PRICE_PER_KW_EUR: 1200
+      ADMIN_EMAIL: admin@test.com
+      ADMIN_PASSWORD: pass@test
     ports:
       - "3001:3001"
     depends_on:

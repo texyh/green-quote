@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Offer, OfferingService } from './offering.service';
-import {
-  APR_BY_BAND,
-  OFFER_TERMS_YEARS,
-  PRICE_PER_KW_EUR,
-  RiskBand,
-} from './pricing.constants';
+import { APR_BY_BAND, OFFER_TERMS_YEARS, RiskBand } from './pricing.constants';
 
 export type PricingInput = {
   systemSizeKw: number;
@@ -23,7 +19,14 @@ export type PricingResult = {
 
 @Injectable()
 export class PricingService {
-  constructor(private readonly offeringService: OfferingService) {}
+  private readonly pricePerKwEur: number;
+
+  constructor(
+    private readonly offeringService: OfferingService,
+    config: ConfigService,
+  ) {
+    this.pricePerKwEur = Number(config.getOrThrow<string>('PRICE_PER_KW_EUR'));
+  }
 
   calculate({
     systemSizeKw,
@@ -32,7 +35,7 @@ export class PricingService {
   }: PricingInput): PricingResult {
     const systemPrice = this.calculateSystemPrice(
       systemSizeKw,
-      PRICE_PER_KW_EUR,
+      this.pricePerKwEur,
     );
     const principalAmount = systemPrice - downPayment;
     const riskBand = this.calculateRiskBand(

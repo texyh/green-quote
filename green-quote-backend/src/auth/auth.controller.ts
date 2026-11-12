@@ -7,6 +7,7 @@ import {
   Post,
   Res,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   ApiBadRequestResponse,
   ApiConflictResponse,
@@ -27,18 +28,27 @@ import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
 import type { AuthUser } from './guards/jwt-auth.guard';
 
-const sessionCookieOptions: CookieOptions = {
-  httpOnly: true,
-  sameSite: 'lax',
-  secure: process.env.NODE_ENV === 'production',
-};
-
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) {}
+  private readonly sessionCookieOptions: CookieOptions;
+  private readonly sessionTtlSeconds: number;
+
+  constructor(
+    private readonly authService: AuthService,
+    config: ConfigService,
+  ) {
+    this.sessionCookieOptions = {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: config.get<string>('NODE_ENV') === 'production',
+    };
+    this.sessionTtlSeconds = Number(
+      config.getOrThrow<string>('SESSION_TTL_SECONDS'),
+    );
+  }
 
   @AllowAnonymous()
   @Post('signup')
@@ -82,7 +92,7 @@ export class AuthController {
   @ApiNoContentResponse({ description: 'Session cookie cleared' })
   signOut(@Res({ passthrough: true }) res: Response): void {
     this.logger.log('POST /api/auth/signout');
-    res.clearCookie(ACCESS_TOKEN_COOKIE, sessionCookieOptions);
+    res.clearCookie(ACCESS_TOKEN_COOKIE, this.sessionCookieOptions);
   }
 
   @Get('me')
@@ -96,8 +106,8 @@ export class AuthController {
 
   private setSessionCookie(res: Response, result: AuthResult): UserResponseDto {
     res.cookie(ACCESS_TOKEN_COOKIE, result.accessToken, {
-      ...sessionCookieOptions,
-      maxAge: 60 * 60 * 1000,
+      ...this.sessionCookieOptions,
+      maxAge: this.sessionTtlSeconds * 1000,
     });
     return result.user;
   }
