@@ -5,7 +5,7 @@ import type { ThemeConfig } from "antd";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Quote Checker",
+  title: "GreenQuote",
   description: "Check your quotes",
 };
 

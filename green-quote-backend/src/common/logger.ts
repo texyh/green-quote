@@ -1,7 +1,7 @@
 import { utilities, WinstonModule } from 'nest-winston';
 import { format, transports } from 'winston';
 
-const SERVICE_NAME = 'quote-checker-backend';
+const SERVICE_NAME = 'green-quote-backend';
 const isProduction = process.env.NODE_ENV === 'production';
 
 const jsonFormat = format.combine(
