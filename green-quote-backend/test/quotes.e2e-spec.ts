@@ -77,4 +77,25 @@ describe('Quotes (integration)', () => {
     await bob.get(`/api/quotes/${id}`).expect(404);
     await jane.get('/api/quotes/not-a-uuid').expect(400);
   });
+
+  it('returns the amortization schedule of an offer to its owner', async () => {
+    const jane = await signUp(app, 'jane@example.com');
+    const bob = await signUp(app, 'bob@example.com');
+    const created = await jane.post('/api/quotes').send(validQuote);
+    const url = `/api/quotes/${created.body.id as string}/offers/5/schedule`;
+
+    const res = await jane.get(url).expect(200);
+    expect(res.body).toHaveLength(60);
+    expect(res.body[0]).toEqual({
+      month: 1,
+      payment: 98.77,
+      interest: 28.75,
+      principal: 70.02,
+      balance: 4929.98,
+    });
+    expect(res.body[59].balance).toBe(0);
+
+    await bob.get(url).expect(404);
+    await jane.get(url.replace('/5/', '/20/')).expect(404);
+  });
 });

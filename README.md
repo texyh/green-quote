@@ -6,7 +6,7 @@ Solar financing pre-qualification. A signed-in user requests a quote for a resid
 
 - **Auth:** sign up and sign in with email and password; the session is a JWT in an httpOnly cookie
 - **Quote form:** name and email are filled from the account; address, monthly consumption, system size and an optional down payment, with client- and server-side validation
-- **Quote result:** system price, risk band with its APR, and 5, 10 and 15-year offers with the monthly payment
+- **Quote result:** system price, risk band with its APR, and 5, 10 and 15-year offers with the monthly payment and a month-by-month repayment schedule
 - **My quotes:** a paginated table of only the signed-in user's quotes
 - **Admin view:** all quotes, searchable by customer name or email; authorization is enforced on the server
 - **Ops:** Docker Compose for the whole stack, structured logs, health check, Swagger docs
@@ -70,8 +70,8 @@ Signing in with it opens the admin view at `/admin/quotes`. This is a demo crede
 
 | Where    | Command                  | What                                                              |
 | -------- | ------------------------ | ----------------------------------------------------------------- |
-| Backend  | `pnpm test`              | Unit tests (57): pricing, auth, guards, validation, logging, DTOs |
-| Backend  | `pnpm test:e2e`          | Integration tests (12) against a real Postgres                    |
+| Backend  | `pnpm test`              | Unit tests (62): pricing, auth, guards, validation, logging, DTOs |
+| Backend  | `pnpm test:e2e`          | Integration tests (13) against a real Postgres                    |
 | Backend  | `pnpm lint`              | oxlint with type-aware rules                                      |
 | Backend  | `pnpm format`            | Prettier                                                          |
 | Frontend | `pnpm lint`              | ESLint                                                            |
@@ -95,17 +95,18 @@ GitHub Actions runs these checks on every pull request: `.github/workflows/backe
 
 All routes are under `/api` and require a signed-in session unless marked public. Full schemas are in Swagger at `/api/docs`.
 
-| Method | Path            | Access | Description                                                                    |
-| ------ | --------------- | ------ | ------------------------------------------------------------------------------ |
-| POST   | `/auth/signup`  | Public | Create an account and start a session (`409` if the email is taken)            |
-| POST   | `/auth/signin`  | Public | Start a session (`401` for a wrong email or password)                          |
-| POST   | `/auth/signout` | Public | Clear the session cookie (`204`)                                               |
-| GET    | `/auth/me`      | User   | The signed-in user                                                             |
-| POST   | `/quotes`       | User   | Validate, price and save a quote (`400` if the down payment exceeds the price) |
-| GET    | `/quotes`       | User   | The user's quotes, newest first (`page`, `limit` up to 100)                    |
-| GET    | `/quotes/:id`   | User   | One quote; `404` unless you own it or are an admin                             |
-| GET    | `/admin/quotes` | Admin  | All quotes, paginated, `search` by owner name or email                         |
-| GET    | `/health`       | Public | Database and memory check                                                      |
+| Method | Path                                     | Access | Description                                                                    |
+| ------ | ---------------------------------------- | ------ | ------------------------------------------------------------------------------ |
+| POST   | `/auth/signup`                           | Public | Create an account and start a session (`409` if the email is taken)            |
+| POST   | `/auth/signin`                           | Public | Start a session (`401` for a wrong email or password)                          |
+| POST   | `/auth/signout`                          | Public | Clear the session cookie (`204`)                                               |
+| GET    | `/auth/me`                               | User   | The signed-in user                                                             |
+| POST   | `/quotes`                                | User   | Validate, price and save a quote (`400` if the down payment exceeds the price) |
+| GET    | `/quotes`                                | User   | The user's quotes, newest first (`page`, `limit` up to 100)                    |
+| GET    | `/quotes/:id`                            | User   | One quote; `404` unless you own it or are an admin                             |
+| GET    | `/quotes/:id/offers/:termYears/schedule` | User   | The offer's monthly repayment schedule; same access as `/quotes/:id`           |
+| GET    | `/admin/quotes`                          | Admin  | All quotes, paginated, `search` by owner name or email                         |
+| GET    | `/health`                                | Public | Database and memory check                                                      |
 
 ## Pricing model
 
@@ -114,6 +115,7 @@ All routes are under `/api` and require a signed-in session unless marked public
 - **Risk band:** A if monthly consumption ≥ 400 kWh and system size ≤ 6 kW; otherwise B if consumption ≥ 250 kWh; otherwise C
 - **APR:** A 6.9%, B 8.9%, C 11.9%
 - **Offers:** 5, 10 and 15 years, monthly payment by standard amortization `P·r / (1 − (1 + r)^−n)` with `r = APR / 12` and `n = years × 12`, rounded to cents
+- **Schedule:** each month, interest is the balance × `r` and the rest of the payment repays principal, rounded to cents; the last payment clears the remaining balance, so it can differ by a few cents
 
 The rules live in `src/pricing/pricing.constants.ts`.
 
@@ -159,4 +161,4 @@ green-quote-frontend/      Next.js app
 1. **Deploy on GCP Cloud Run** (API and frontend containers) with Cloud SQL for Postgres and secrets in Secret Manager
 2. **Token revocation and refresh tokens,** and rate limiting on sign-in
 3. **Search at scale:** trigram (`pg_trgm`) indexes on user name and email
-4. **Bonus features:** an amortization schedule per offer, PDF export, an end-to-end test (Playwright), Keycloak
+4. **Bonus features:** PDF export, an end-to-end test (Playwright), Keycloak

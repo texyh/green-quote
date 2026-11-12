@@ -16,8 +16,11 @@ import type { TableProps } from "antd";
 import { ApiError } from "@/lib/api";
 import { formatEur } from "@/lib/format";
 import { getQuote, Offer, Quote } from "@/lib/quotes";
+import ScheduleModal from "./schedule-modal";
 
-const offerColumns: TableProps<Offer>["columns"] = [
+const offerColumns = (
+  onViewSchedule: (offer: Offer) => void,
+): TableProps<Offer>["columns"] => [
   {
     title: "Term",
     dataIndex: "termYears",
@@ -34,11 +37,21 @@ const offerColumns: TableProps<Offer>["columns"] = [
     dataIndex: "monthlyPayment",
     render: (amount: number) => formatEur(amount),
   },
+  {
+    title: "",
+    key: "schedule",
+    render: (_, offer) => (
+      <Button size="small" onClick={() => onViewSchedule(offer)}>
+        View Schedule
+      </Button>
+    ),
+  },
 ];
 
 export default function QuoteDetails({ id }: { id: string }) {
   const [quote, setQuote] = useState<Quote>();
   const [error, setError] = useState<"not-found" | "failed">();
+  const [scheduleOffer, setScheduleOffer] = useState<Offer>();
 
   useEffect(() => {
     getQuote(id)
@@ -98,10 +111,18 @@ export default function QuoteDetails({ id }: { id: string }) {
       </Typography.Title>
       <Table
         rowKey="termYears"
-        columns={offerColumns}
+        scroll={{ x: "max-content" }}
+        columns={offerColumns(setScheduleOffer)}
         dataSource={quote.offers}
         pagination={false}
       />
+      {scheduleOffer && (
+        <ScheduleModal
+          quoteId={quote.id}
+          offer={scheduleOffer}
+          onClose={() => setScheduleOffer(undefined)}
+        />
+      )}
 
       <Typography.Title level={4} style={{ marginTop: 24 }}>
         Your request

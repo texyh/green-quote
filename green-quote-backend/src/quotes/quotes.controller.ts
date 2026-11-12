@@ -4,6 +4,7 @@ import {
   Get,
   Logger,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Post,
   Query,
@@ -23,6 +24,7 @@ import { CreateQuoteDto } from './dto/create-quote.dto';
 import { ListQuotesQueryDto } from './dto/list-quotes-query.dto';
 import { QuoteListResponseDto } from './dto/quote-list-response.dto';
 import { QuoteResponseDto } from './dto/quote-response.dto';
+import { ScheduleRowDto } from './dto/schedule-row.dto';
 import { QuotesService } from './quotes.service';
 
 @ApiTags('quotes')
@@ -64,6 +66,28 @@ export class QuotesController {
       quoteId: id,
     });
     return this.quotesService.findOneForUser(id, user);
+  }
+
+  @Get(':id/offers/:termYears/schedule')
+  @ApiOkResponse({ type: [ScheduleRowDto] })
+  @ApiBadRequestResponse({
+    description: 'id is not a UUID or term is not a number',
+  })
+  @ApiNotFoundResponse({
+    description: 'Quote or offer not found, or not yours',
+  })
+  getSchedule(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('termYears', ParseIntPipe) termYears: number,
+    @CurrentUser() user: AuthUser,
+  ): Promise<ScheduleRowDto[]> {
+    this.logger.log({
+      message: 'GET /api/quotes/:id/offers/:termYears/schedule',
+      userId: user.id,
+      quoteId: id,
+      termYears,
+    });
+    return this.quotesService.getSchedule(id, termYears, user);
   }
 
   @Post()

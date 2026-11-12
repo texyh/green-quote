@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Alert, Input, Table, Typography } from "antd";
+import { Alert, Button, Input, Table, Typography } from "antd";
 import type { TableProps } from "antd";
 import { ApiError } from "@/lib/api";
 import { formatEur } from "@/lib/format";
@@ -41,7 +41,11 @@ const columns: TableProps<Quote>["columns"] = [
   {
     title: "",
     key: "view",
-    render: (_, quote) => <Link href={`/quotes/${quote.id}`}>View</Link>,
+    render: (_, quote) => (
+      <Link href={`/quotes/${quote.id}`}>
+        <Button size="small">View</Button>
+      </Link>
+    ),
   },
 ];
 
