@@ -23,7 +23,7 @@ describe('QuotesService', () => {
     } as unknown as Repository<Quote>,
     new PricingService(
       new OfferingService(),
-      new ConfigService({ PRICE_PER_KW_EUR: '1200' }),
+      new ConfigService({ PRICE_PER_KW_EUR: 1200 }),
     ),
     new OfferingService(),
   );

@@ -16,7 +16,7 @@ import { RolesGuard } from './guards/roles.guard';
       useFactory: (config: ConfigService) => ({
         secret: config.getOrThrow<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: Number(config.getOrThrow<string>('SESSION_TTL_SECONDS')),
+          expiresIn: config.getOrThrow<number>('SESSION_TTL_SECONDS'),
         },
       }),
     }),

@@ -45,9 +45,7 @@ export class AuthController {
       sameSite: 'lax',
       secure: config.get<string>('NODE_ENV') === 'production',
     };
-    this.sessionTtlSeconds = Number(
-      config.getOrThrow<string>('SESSION_TTL_SECONDS'),
-    );
+    this.sessionTtlSeconds = config.getOrThrow<number>('SESSION_TTL_SECONDS');
   }
 
   @AllowAnonymous()

@@ -21,11 +21,11 @@ async function bootstrap() {
     SwaggerModule.createDocument(app, config),
   );
 
-  const port = app.get(ConfigService).get<string>('PORT', '3001');
+  const port = app.get(ConfigService).get<number>('PORT', 3001);
   await app.listen(port);
   new Logger('Bootstrap').log({
     message: 'API listening',
-    port: Number(port),
+    port,
     docs: '/api/docs',
   });
 }
