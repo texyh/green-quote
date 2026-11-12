@@ -1,17 +1,14 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { configureApp } from './app.setup';
 import { ACCESS_TOKEN_COOKIE } from './auth/auth.constants';
 import { logger } from './common/logger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { logger });
-
-  app.setGlobalPrefix('api');
-  app.use(cookieParser());
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  configureApp(app);
 
   const config = new DocumentBuilder()
     .setTitle('GreenQuote API')

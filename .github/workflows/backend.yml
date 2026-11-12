@@ -1,0 +1,45 @@
+name: Backend
+
+on:
+  push:
+    branches: [main]
+    paths: [quote-checker-backend/**, .github/workflows/backend.yml]
+  pull_request:
+    paths: [quote-checker-backend/**, .github/workflows/backend.yml]
+
+defaults:
+  run:
+    working-directory: quote-checker-backend
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.18.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: quote-checker-backend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm exec prettier --check "src/**/*.ts" "test/**/*.ts"
+      - run: pnpm build
+      - run: pnpm test
+      - run: pnpm test:e2e
