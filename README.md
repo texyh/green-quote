@@ -30,7 +30,7 @@ Solar financing pre-qualification. A signed-in user requests a quote for a resid
 docker compose up --build
 ```
 
-This starts Postgres, the API and the frontend. The API runs migrations (including the admin seed) before it starts, and the frontend waits until the API is healthy. The `JWT_SECRET` in `docker-compose.yml` is for local demos only; a real deployment must use its own long random secret.
+This starts Postgres, the API and the frontend. The API runs the migrations and the admin seed before it starts, and the frontend waits until the API is healthy. The `JWT_SECRET` in `docker-compose.yml` is for local demos only; a real deployment must use its own long random secret.
 
 ### Local development
 
@@ -41,6 +41,7 @@ cd green-quote-backend
 cp .env.example .env
 pnpm install
 pnpm migration:run
+pnpm seed:admin
 pnpm start:dev
 
 cd ../green-quote-frontend
@@ -58,19 +59,36 @@ Postgres runs on host port **5433**.
 
 ## Admin account
 
-The `AdminSeed` migration creates an admin account:
+`pnpm seed:admin` creates the admin from `ADMIN_EMAIL` and `ADMIN_PASSWORD`, or resets its password and role if the email already exists. Docker runs it after the migrations, and `.env.example` and `docker-compose.yml` set demo values:
 
 | Email            | Password    |
 | ---------------- | ----------- |
 | `admin@test.com` | `pass@test` |
 
-Signing in with it opens the admin view at `/admin/quotes`. This is a demo credential only; in production the first admin would be created outside the migrations, with a secret password.
+Signing in with it opens the admin view at `/admin/quotes`. These are demo values only: a real deployment sets its own from a secret store, or promotes a real user to admin instead of seeding a password.
+
+## Configuration (backend)
+
+Read with Nest's `ConfigService` (`.env` locally, `docker-compose.yml` in Docker). Required variables stop the API at startup if they're missing.
+
+| Variable              | Required     | What                                          |
+| --------------------- | ------------ | --------------------------------------------- |
+| `DATABASE_URL`        | Yes          | Postgres connection string                    |
+| `JWT_SECRET`          | Yes          | Secret that signs the session token           |
+| `SESSION_TTL_SECONDS` | Yes          | Session length, for both the token and cookie |
+| `PRICE_PER_KW_EUR`    | Yes          | System price per kW for new quotes            |
+| `PORT`                | No (`3001`)  | API port                                      |
+| `LOG_LEVEL`           | No (`info`)  | Winston log level                             |
+| `ADMIN_EMAIL`         | For the seed | Admin account for `pnpm seed:admin`           |
+| `ADMIN_PASSWORD`      | For the seed | Admin password for `pnpm seed:admin`          |
+
+Changing the price only affects new quotes, since each quote stores its own price and offers.
 
 ## Tests and checks
 
 | Where    | Command                  | What                                                              |
 | -------- | ------------------------ | ----------------------------------------------------------------- |
-| Backend  | `pnpm test`              | Unit tests (62): pricing, auth, guards, validation, logging, DTOs |
+| Backend  | `pnpm test`              | Unit tests (63): pricing, auth, guards, validation, logging, DTOs |
 | Backend  | `pnpm test:e2e`          | Integration tests (13) against a real Postgres                    |
 | Backend  | `pnpm lint`              | oxlint with type-aware rules                                      |
 | Backend  | `pnpm format`            | Prettier                                                          |
@@ -90,6 +108,7 @@ GitHub Actions runs these checks on every pull request: `.github/workflows/backe
 | `pnpm migration:create <Name>`            | Create an empty migration                |
 | `pnpm migration:run` / `migration:revert` | Apply / undo migrations                  |
 | `pnpm migration:show`                     | List which migrations have run           |
+| `pnpm seed:admin`                         | Create or update the admin account       |
 
 ## API reference
 
@@ -110,7 +129,7 @@ All routes are under `/api` and require a signed-in session unless marked public
 
 ## Pricing model
 
-- **System price:** `systemSizeKw × €1,200`
+- **System price:** `systemSizeKw × €1,200` (`PRICE_PER_KW_EUR`)
 - **Principal:** system price − down payment (a down payment above the price is rejected)
 - **Risk band:** A if monthly consumption ≥ 400 kWh and system size ≤ 6 kW; otherwise B if consumption ≥ 250 kWh; otherwise C
 - **APR:** A 6.9%, B 8.9%, C 11.9%

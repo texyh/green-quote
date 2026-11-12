@@ -19,7 +19,7 @@ export default async function globalSetup(): Promise<void> {
   await dataSource.destroy();
 
   execSync(
-    './node_modules/.bin/nest build && node node_modules/typeorm/cli.js -d dist/database/data-source.js migration:run',
+    './node_modules/.bin/nest build && node node_modules/typeorm/cli.js -d dist/database/data-source.js migration:run && node dist/database/seed-admin.js',
     {
       stdio: 'ignore',
       env: { ...process.env, DATABASE_URL: TEST_DATABASE_URL },

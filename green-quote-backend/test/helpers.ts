@@ -4,10 +4,9 @@ import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
+import { ADMIN } from './test-env';
 
 export type Agent = ReturnType<typeof request.agent>;
-
-export const ADMIN = { email: 'admin@test.com', password: 'pass@test' };
 
 export const validQuote = {
   fullName: 'Jane Doe',

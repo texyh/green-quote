@@ -1,4 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ILike, Repository } from 'typeorm';
 import { OfferingService } from '../pricing/offering.service';
 import { PricingService } from '../pricing/pricing.service';
@@ -20,7 +21,10 @@ describe('QuotesService', () => {
       save,
       create: (data: Partial<Quote>) => Object.assign(new Quote(), data),
     } as unknown as Repository<Quote>,
-    new PricingService(new OfferingService()),
+    new PricingService(
+      new OfferingService(),
+      new ConfigService({ PRICE_PER_KW_EUR: '1200' }),
+    ),
     new OfferingService(),
   );
 
