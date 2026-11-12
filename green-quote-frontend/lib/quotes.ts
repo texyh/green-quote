@@ -57,6 +57,21 @@ export function getQuote(id: string): Promise<Quote> {
   return request<Quote>(`/quotes/${id}`);
 }
 
+export type ScheduleRow = {
+  month: number;
+  payment: number;
+  interest: number;
+  principal: number;
+  balance: number;
+};
+
+export function getSchedule(
+  id: string,
+  termYears: number,
+): Promise<ScheduleRow[]> {
+  return request<ScheduleRow[]>(`/quotes/${id}/offers/${termYears}/schedule`);
+}
+
 export function createQuote(body: CreateQuoteRequest): Promise<Quote> {
   return request<Quote>("/quotes", {
     method: "POST",

@@ -24,4 +24,43 @@ describe('OfferingService', () => {
       { termYears: 15, apr: 6.9, principalUsed: 10000, monthlyPayment: 89.32 },
     ]);
   });
+
+  describe('calculateSchedule', () => {
+    const rows = service.calculateSchedule(5000, 6.9, 98.77, 5);
+
+    it('has one row per month', () => {
+      expect(rows).toHaveLength(60);
+      expect(rows.map((row) => row.month)).toEqual(
+        Array.from({ length: 60 }, (_, i) => i + 1),
+      );
+    });
+
+    it('splits each payment into interest on the balance and principal', () => {
+      expect(rows.slice(0, 2)).toEqual([
+        {
+          month: 1,
+          payment: 98.77,
+          interest: 28.75,
+          principal: 70.02,
+          balance: 4929.98,
+        },
+        {
+          month: 2,
+          payment: 98.77,
+          interest: 28.35,
+          principal: 70.42,
+          balance: 4859.56,
+        },
+      ]);
+    });
+
+    it('pays off exactly the principal, adjusting the last payment for rounding', () => {
+      const totalPrincipal = rows.reduce((sum, row) => sum + row.principal, 0);
+      const last = rows[rows.length - 1];
+
+      expect(totalPrincipal).toBeCloseTo(5000, 2);
+      expect(last.balance).toBe(0);
+      expect(Math.abs(last.payment - 98.77)).toBeLessThan(1);
+    });
+  });
 });

@@ -29,7 +29,11 @@ const columns: TableProps<Quote>["columns"] = [
   {
     title: "",
     key: "view",
-    render: (_, quote) => <Link href={`/quotes/${quote.id}`}>View</Link>,
+    render: (_, quote) => (
+      <Link href={`/quotes/${quote.id}`}>
+        <Button size="small">View</Button>
+      </Link>
+    ),
   },
 ];
 

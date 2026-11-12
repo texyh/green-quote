@@ -21,6 +21,7 @@ describe('QuotesService', () => {
       create: (data: Partial<Quote>) => Object.assign(new Quote(), data),
     } as unknown as Repository<Quote>,
     new PricingService(new OfferingService()),
+    new OfferingService(),
   );
 
   const quote = Object.assign(new Quote(), {
@@ -150,6 +151,38 @@ describe('QuotesService', () => {
       findOneBy.mockResolvedValue(quote);
       await service.findOneForUser('quote-1', { id: 'admin-1', role: 'admin' });
       expect(findOneBy).toHaveBeenCalledWith({ id: 'quote-1' });
+    });
+  });
+
+  describe('getSchedule', () => {
+    const user = { id: 'user-1', role: 'user' as const };
+    const withOffer = Object.assign(new Quote(), quote, {
+      offers: [
+        { termYears: 5, apr: 6.9, principalUsed: 5000, monthlyPayment: 98.77 },
+      ],
+    });
+
+    it('returns the schedule for one of the quote offers', async () => {
+      findOneBy.mockResolvedValue(withOffer);
+
+      const rows = await service.getSchedule('quote-1', 5, user);
+
+      expect(rows).toHaveLength(60);
+      expect(rows[0]).toEqual({
+        month: 1,
+        payment: 98.77,
+        interest: 28.75,
+        principal: 70.02,
+        balance: 4929.98,
+      });
+    });
+
+    it('throws NotFound for a term the quote does not offer', async () => {
+      findOneBy.mockResolvedValue(withOffer);
+
+      await expect(
+        service.getSchedule('quote-1', 20, user),
+      ).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 

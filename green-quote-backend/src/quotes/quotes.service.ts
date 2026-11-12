@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import type { AuthUser } from '../auth/guards/jwt-auth.guard';
+import { OfferingService } from '../pricing/offering.service';
 import { PricingService } from '../pricing/pricing.service';
 import { User } from '../users/user.entity';
 import { AdminListQuotesQueryDto } from './dto/admin-list-quotes-query.dto';
@@ -13,6 +14,7 @@ import { CreateQuoteDto } from './dto/create-quote.dto';
 import { ListQuotesQueryDto } from './dto/list-quotes-query.dto';
 import { QuoteListResponseDto } from './dto/quote-list-response.dto';
 import { QuoteResponseDto } from './dto/quote-response.dto';
+import { ScheduleRowDto } from './dto/schedule-row.dto';
 import { Quote } from './quote.entity';
 
 @Injectable()
@@ -21,6 +23,7 @@ export class QuotesService {
     @InjectRepository(Quote)
     private readonly quotesRepository: Repository<Quote>,
     private readonly pricingService: PricingService,
+    private readonly offeringService: OfferingService,
   ) {}
 
   async create(dto: CreateQuoteDto, userId: string): Promise<QuoteResponseDto> {
@@ -53,6 +56,25 @@ export class QuotesService {
       throw new NotFoundException('Quote not found');
     }
     return QuoteResponseDto.fromEntity(quote);
+  }
+
+  async getSchedule(
+    id: string,
+    termYears: number,
+    user: AuthUser,
+  ): Promise<ScheduleRowDto[]> {
+    const quote = await this.findOneForUser(id, user);
+    const offer = quote.offers.find((o) => o.termYears === termYears);
+
+    if (!offer) {
+      throw new NotFoundException('Offer not found');
+    }
+    return this.offeringService.calculateSchedule(
+      offer.principalUsed,
+      offer.apr,
+      offer.monthlyPayment,
+      offer.termYears,
+    );
   }
 
   findAllForUser(

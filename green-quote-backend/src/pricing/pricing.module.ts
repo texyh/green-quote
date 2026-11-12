@@ -4,6 +4,6 @@ import { PricingService } from './pricing.service';
 
 @Module({
   providers: [PricingService, OfferingService],
-  exports: [PricingService],
+  exports: [PricingService, OfferingService],
 })
 export class PricingModule {}
