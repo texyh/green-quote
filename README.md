@@ -69,7 +69,7 @@ Signing in with it opens the admin view at `/admin/quotes`. These are demo value
 
 ## Configuration (backend)
 
-Read with Nest's `ConfigService` (`.env` locally, `docker-compose.yml` in Docker). Required variables stop the API at startup if they're missing.
+Read with Nest's `ConfigService` (`.env` locally, `docker-compose.yml` in Docker). `src/config/env.validation.ts` checks them at startup with class-validator, so a missing or invalid value (for example `PRICE_PER_KW_EUR=abc`) stops the API with a clear error.
 
 | Variable              | Required     | What                                          |
 | --------------------- | ------------ | --------------------------------------------- |
@@ -88,7 +88,7 @@ Changing the price only affects new quotes, since each quote stores its own pric
 
 | Where    | Command                  | What                                                              |
 | -------- | ------------------------ | ----------------------------------------------------------------- |
-| Backend  | `pnpm test`              | Unit tests (63): pricing, auth, guards, validation, logging, DTOs |
+| Backend  | `pnpm test`              | Unit tests (70): pricing, auth, guards, validation, logging, DTOs |
 | Backend  | `pnpm test:e2e`          | Integration tests (13) against a real Postgres                    |
 | Backend  | `pnpm lint`              | oxlint with type-aware rules                                      |
 | Backend  | `pnpm format`            | Prettier                                                          |

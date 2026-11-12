@@ -4,13 +4,14 @@ import { APP_FILTER } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { AllExceptionsFilter } from './common/all-exceptions.filter';
+import { validateEnv } from './config/env.validation';
 import { dataSourceOptions } from './database/data-source';
 import { HealthModule } from './health/health.module';
 import { QuotesModule } from './quotes/quotes.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({

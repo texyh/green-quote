@@ -13,7 +13,7 @@ describe('PricingService', () => {
         OfferingService,
         {
           provide: ConfigService,
-          useValue: new ConfigService({ PRICE_PER_KW_EUR: '1200' }),
+          useValue: new ConfigService({ PRICE_PER_KW_EUR: 1200 }),
         },
       ],
     }).compile();
@@ -60,7 +60,7 @@ describe('PricingService', () => {
   it('uses PRICE_PER_KW_EUR from the config', () => {
     const service = new PricingService(
       new OfferingService(),
-      new ConfigService({ PRICE_PER_KW_EUR: '1000' }),
+      new ConfigService({ PRICE_PER_KW_EUR: 1000 }),
     );
 
     expect(

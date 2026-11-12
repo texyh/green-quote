@@ -25,7 +25,7 @@ export class PricingService {
     private readonly offeringService: OfferingService,
     config: ConfigService,
   ) {
-    this.pricePerKwEur = Number(config.getOrThrow<string>('PRICE_PER_KW_EUR'));
+    this.pricePerKwEur = config.getOrThrow<number>('PRICE_PER_KW_EUR');
   }
 
   calculate({
