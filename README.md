@@ -37,13 +37,13 @@ This starts Postgres, the API and the frontend. The API runs migrations (includi
 ```bash
 docker compose up -d db
 
-cd quote-checker-backend
+cd green-quote-backend
 cp .env.example .env
 pnpm install
 pnpm migration:run
 pnpm start:dev
 
-cd ../quote-checker-frontend
+cd ../green-quote-frontend
 pnpm install
 pnpm dev
 ```
@@ -78,7 +78,7 @@ Signing in with it opens the admin view at `/admin/quotes`. This is a demo crede
 | Frontend | `pnpm format:check`      | Prettier                                                          |
 | Frontend | `pnpm exec tsc --noEmit` | Type check                                                        |
 
-The integration tests start the real app and call it over HTTP: signup and signin, quote creation with the full pricing in the response, ownership (`404` for other users), `401` without a session, `403` for non-admins, and admin search. They use a separate `quote_checker_test` database on the compose Postgres, which they create and migrate themselves, so they never touch your dev data. Start it with `docker compose up -d db` first; set `TEST_DATABASE_URL` to use another database.
+The integration tests start the real app and call it over HTTP: signup and signin, quote creation with the full pricing in the response, ownership (`404` for other users), `401` without a session, `403` for non-admins, and admin search. They use a separate `green_quote_test` database on the compose Postgres, which they create and migrate themselves, so they never touch your dev data. Start it with `docker compose up -d db` first; set `TEST_DATABASE_URL` to use another database.
 
 GitHub Actions runs these checks on every pull request: `.github/workflows/backend.yml` (lint, format, build, unit and integration tests against a Postgres service) and `.github/workflows/frontend.yml` (lint, format, build). Each only runs when its folder changes.
 
@@ -121,7 +121,7 @@ The rules live in `src/pricing/pricing.constants.ts`.
 
 ```
 docker-compose.yml           Postgres, API and frontend
-quote-checker-backend/       NestJS API
+green-quote-backend/       NestJS API
   src/auth/                  Signup/signin, JWT cookie, guards and decorators
   src/users/                 User entity and service
   src/quotes/                Quote entity, DTOs, user and admin controllers, service
@@ -129,7 +129,7 @@ quote-checker-backend/       NestJS API
   src/common/                Logger and global exception filter
   src/health/                Health check (Terminus)
   src/database/              Data source and migrations
-quote-checker-frontend/      Next.js app
+green-quote-frontend/      Next.js app
   app/(public)/              Landing, sign in, sign up
   app/(app)/                 Signed-in pages: quotes, quote form and result, admin
   lib/                       API client, auth, quote calls, formatting

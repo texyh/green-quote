@@ -4,21 +4,21 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: quote_checker
+      POSTGRES_DB: green_quote
     ports:
       - "5433:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d quote_checker"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d green_quote"]
       interval: 5s
       timeout: 3s
       retries: 10
 
   api:
-    build: ./quote-checker-backend
+    build: ./green-quote-backend
     environment:
-      DATABASE_URL: postgres://postgres:postgres@db:5432/quote_checker
+      DATABASE_URL: postgres://postgres:postgres@db:5432/green_quote
       JWT_SECRET: 4de034df-5827-4076-b2d5-4e87b75ad660
       PORT: 3001
       LOG_LEVEL: info
@@ -36,7 +36,7 @@ services:
 
   web:
     build:
-      context: ./quote-checker-frontend
+      context: ./green-quote-frontend
       args:
         API_URL: http://api:3001
     ports:
