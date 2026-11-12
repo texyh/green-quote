@@ -70,14 +70,17 @@ Signing in with it opens the admin view at `/admin/quotes`. This is a demo crede
 
 | Where    | Command                  | What                                                              |
 | -------- | ------------------------ | ----------------------------------------------------------------- |
-| Backend  | `pnpm test`              | Unit tests (58): pricing, auth, guards, validation, logging, DTOs |
+| Backend  | `pnpm test`              | Unit tests (57): pricing, auth, guards, validation, logging, DTOs |
+| Backend  | `pnpm test:e2e`          | Integration tests (12) against a real Postgres                    |
 | Backend  | `pnpm lint`              | oxlint with type-aware rules                                      |
 | Backend  | `pnpm format`            | Prettier                                                          |
 | Frontend | `pnpm lint`              | ESLint                                                            |
 | Frontend | `pnpm format:check`      | Prettier                                                          |
 | Frontend | `pnpm exec tsc --noEmit` | Type check                                                        |
 
-Integration tests against a real database are not written yet; see [What's next](#whats-next).
+The integration tests start the real app and call it over HTTP: signup and signin, quote creation with the full pricing in the response, ownership (`404` for other users), `401` without a session, `403` for non-admins, and admin search. They use a separate `quote_checker_test` database on the compose Postgres, which they create and migrate themselves, so they never touch your dev data. Start it with `docker compose up -d db` first; set `TEST_DATABASE_URL` to use another database.
+
+GitHub Actions runs these checks on every pull request: `.github/workflows/backend.yml` (lint, format, build, unit and integration tests against a Postgres service) and `.github/workflows/frontend.yml` (lint, format, build). Each only runs when its folder changes.
 
 ## Database migrations (backend)
 
@@ -153,9 +156,7 @@ quote-checker-frontend/      Next.js app
 
 ## What's next
 
-1. **Integration tests** against a test Postgres: signup → quote → pricing in the response, ownership (`404` for others), `401`/`403`, admin search
-2. **CI:** lint, format check, unit and integration tests, and Docker builds on every pull request
-3. **Deploy on GCP Cloud Run** (API and frontend containers) with Cloud SQL for Postgres and secrets in Secret Manager
-4. **Token revocation and refresh tokens,** and rate limiting on sign-in
-5. **Search at scale:** trigram (`pg_trgm`) indexes on user name and email
-6. **Bonus features:** an amortization schedule per offer, PDF export, an end-to-end test (Playwright), Keycloak
+1. **Deploy on GCP Cloud Run** (API and frontend containers) with Cloud SQL for Postgres and secrets in Secret Manager
+2. **Token revocation and refresh tokens,** and rate limiting on sign-in
+3. **Search at scale:** trigram (`pg_trgm`) indexes on user name and email
+4. **Bonus features:** an amortization schedule per offer, PDF export, an end-to-end test (Playwright), Keycloak
