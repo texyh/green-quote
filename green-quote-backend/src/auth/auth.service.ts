@@ -9,6 +9,7 @@ import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
+import type { KeycloakProfile } from './keycloak.service';
 import { hashPassword, verifyPassword } from './password';
 
 export type AuthResult = { user: UserResponseDto; accessToken: string };
@@ -36,10 +37,33 @@ export class AuthService {
 
   async signIn(dto: SignInDto): Promise<AuthResult> {
     const user = await this.usersService.findByEmail(dto.email.toLowerCase());
-    if (!user || !(await verifyPassword(dto.password, user.passwordHash))) {
+    if (
+      !user?.passwordHash ||
+      !(await verifyPassword(dto.password, user.passwordHash))
+    ) {
       throw new UnauthorizedException('Invalid email or password');
     }
     return this.issueToken(user);
+  }
+
+  async signInWithKeycloak(profile: KeycloakProfile): Promise<AuthResult> {
+    let user = await this.usersService.findByKeycloakId(profile.keycloakId);
+
+    if (!user) {
+      user = await this.usersService.findByEmail(profile.email);
+      if (user && !profile.emailVerified) {
+        throw new ConflictException('Email is already registered');
+      }
+    }
+
+    const saved = await this.usersService.save({
+      id: user?.id,
+      fullName: user?.fullName ?? profile.fullName,
+      email: user?.email ?? profile.email,
+      keycloakId: profile.keycloakId,
+      role: profile.isAdmin ? 'admin' : 'user',
+    });
+    return this.issueToken(saved);
   }
 
   async me(userId: string): Promise<UserResponseDto> {

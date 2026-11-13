@@ -18,8 +18,11 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column()
-  passwordHash: string;
+  @Column({ type: 'varchar', nullable: true })
+  passwordHash: string | null;
+
+  @Column({ type: 'varchar', nullable: true, unique: true })
+  keycloakId: string | null;
 
   @Column({ default: 'user' })
   role: UserRole;

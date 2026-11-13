@@ -18,6 +18,14 @@ export class UsersService {
     return this.usersRepository.findOneBy({ email });
   }
 
+  findByKeycloakId(keycloakId: string): Promise<User | null> {
+    return this.usersRepository.findOneBy({ keycloakId });
+  }
+
+  save(user: Partial<User>): Promise<User> {
+    return this.usersRepository.save(user);
+  }
+
   create(
     user: Pick<User, 'fullName' | 'email' | 'passwordHash'>,
   ): Promise<User> {

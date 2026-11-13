@@ -9,6 +9,7 @@ services:
       - "5433:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d green_quote"]
       interval: 5s
@@ -26,6 +27,11 @@ services:
       PRICE_PER_KW_EUR: 1200
       ADMIN_EMAIL: admin@test.com
       ADMIN_PASSWORD: pass@test
+      APP_URL: http://localhost:3000
+      KEYCLOAK_URL: http://localhost:8080/realms/green-quote
+      KEYCLOAK_INTERNAL_URL: http://keycloak:8080/realms/green-quote
+      KEYCLOAK_CLIENT_ID: green-quote-api
+      KEYCLOAK_CLIENT_SECRET: green-quote-dev-secret
     ports:
       - "3001:3001"
     depends_on:
@@ -37,6 +43,26 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HOSTNAME: http://localhost:8080
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+    volumes:
+      - ./keycloak/green-quote-realm.json:/opt/keycloak/data/import/green-quote-realm.json:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
 
   web:
     build:

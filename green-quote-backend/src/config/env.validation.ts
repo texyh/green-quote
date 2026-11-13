@@ -6,8 +6,11 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  IsUrl,
   validateSync,
 } from 'class-validator';
+
+const URL_OPTIONS = { require_tld: false, require_protocol: true };
 
 class EnvironmentVariables {
   @IsString()
@@ -30,6 +33,24 @@ class EnvironmentVariables {
   @IsInt()
   @IsPositive()
   PORT?: number;
+
+  @IsUrl(URL_OPTIONS)
+  APP_URL: string;
+
+  @IsUrl(URL_OPTIONS)
+  KEYCLOAK_URL: string;
+
+  @IsOptional()
+  @IsUrl(URL_OPTIONS)
+  KEYCLOAK_INTERNAL_URL?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  KEYCLOAK_CLIENT_ID: string;
+
+  @IsString()
+  @IsNotEmpty()
+  KEYCLOAK_CLIENT_SECRET: string;
 }
 
 export function validateEnv(

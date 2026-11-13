@@ -1,0 +1,64 @@
+{
+  "realm": "green-quote",
+  "enabled": true,
+  "registrationAllowed": true,
+  "loginWithEmailAllowed": true,
+  "registrationEmailAsUsername": true,
+  "roles": {
+    "realm": [{ "name": "admin" }]
+  },
+  "clients": [
+    {
+      "clientId": "green-quote-api",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "green-quote-dev-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:3000/api/auth/keycloak/callback"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/signin"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm roles in ID token",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "realm_access.roles",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "kc-user@example.com",
+      "email": "kc-user@example.com",
+      "emailVerified": true,
+      "firstName": "Kim",
+      "lastName": "User",
+      "enabled": true,
+      "credentials": [
+        { "type": "password", "value": "kc-user-pass", "temporary": false }
+      ]
+    },
+    {
+      "username": "kc-admin@example.com",
+      "email": "kc-admin@example.com",
+      "emailVerified": true,
+      "firstName": "Kai",
+      "lastName": "Admin",
+      "enabled": true,
+      "realmRoles": ["admin"],
+      "credentials": [
+        { "type": "password", "value": "kc-admin-pass", "temporary": false }
+      ]
+    }
+  ]
+}

@@ -11,3 +11,7 @@ process.env.PRICE_PER_KW_EUR = '1200';
 process.env.SESSION_TTL_SECONDS = '3600';
 process.env.ADMIN_EMAIL = ADMIN.email;
 process.env.ADMIN_PASSWORD = ADMIN.password;
+process.env.APP_URL = 'http://localhost:3000';
+process.env.KEYCLOAK_URL = 'http://localhost:8080/realms/green-quote';
+process.env.KEYCLOAK_CLIENT_ID = 'green-quote-api';
+process.env.KEYCLOAK_CLIENT_SECRET = 'integration-test-secret';
