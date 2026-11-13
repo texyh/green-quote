@@ -4,7 +4,7 @@ Solar financing pre-qualification. A signed-in user requests a quote for a resid
 
 ## Features
 
-- **Auth:** sign up and sign in with email and password; the session is a JWT in an httpOnly cookie
+- **Auth:** sign up and sign in with email and password, or with Keycloak; either way the session is a JWT in an httpOnly cookie
 - **Quote form:** name and email are filled from the account; address, monthly consumption, system size and an optional down payment, with client- and server-side validation
 - **Quote result:** system price, risk band with its APR, and 5, 10 and 15-year offers with the monthly payment and a month-by-month repayment schedule
 - **My quotes:** a paginated table of only the signed-in user's quotes
@@ -30,12 +30,19 @@ Solar financing pre-qualification. A signed-in user requests a quote for a resid
 docker compose up --build
 ```
 
-This starts Postgres, the API and the frontend. The API runs the migrations and the admin seed before it starts, and the frontend waits until the API is healthy. The `JWT_SECRET` in `docker-compose.yml` is for local demos only; a real deployment must use its own long random secret.
+This starts Postgres, Keycloak, the API and the frontend. The API runs the migrations and the admin seed before it starts, and the frontend waits until the API is healthy. Keycloak takes about a minute on its first start, while it creates its tables and imports the realm; until then, **Sign in with Keycloak** shows Keycloak's error page. The `JWT_SECRET` in `docker-compose.yml` is for local demos only; a real deployment must use its own long random secret.
+
+To start from scratch (empty databases, Keycloak realm imported again):
+
+```bash
+docker compose down -v
+docker compose up --build
+```
 
 ### Local development
 
 ```bash
-docker compose up -d db
+docker compose up -d db keycloak
 
 cd green-quote-backend
 cp .env.example .env
@@ -49,11 +56,12 @@ pnpm install
 pnpm dev
 ```
 
-| URL                              | What         |
-| -------------------------------- | ------------ |
-| http://localhost:3000            | Frontend     |
-| http://localhost:3001/api/docs   | Swagger docs |
-| http://localhost:3001/api/health | Health check |
+| URL                              | What                                       |
+| -------------------------------- | ------------------------------------------ |
+| http://localhost:3000            | Frontend                                   |
+| http://localhost:3001/api/docs   | Swagger docs                               |
+| http://localhost:3001/api/health | Health check                               |
+| http://localhost:8080/admin      | Keycloak admin console (`admin` / `admin`) |
 
 Postgres runs on host port **5433**.
 
@@ -71,24 +79,52 @@ Signing in with it opens the admin view at `/admin/quotes`. These are demo value
 
 Read with Nest's `ConfigService` (`.env` locally, `docker-compose.yml` in Docker). `src/config/env.validation.ts` checks them at startup with class-validator, so a missing or invalid value (for example `PRICE_PER_KW_EUR=abc`) stops the API with a clear error.
 
-| Variable              | Required     | What                                          |
-| --------------------- | ------------ | --------------------------------------------- |
-| `DATABASE_URL`        | Yes          | Postgres connection string                    |
-| `JWT_SECRET`          | Yes          | Secret that signs the session token           |
-| `SESSION_TTL_SECONDS` | Yes          | Session length, for both the token and cookie |
-| `PRICE_PER_KW_EUR`    | Yes          | System price per kW for new quotes            |
-| `PORT`                | No (`3001`)  | API port                                      |
-| `LOG_LEVEL`           | No (`info`)  | Winston log level                             |
-| `ADMIN_EMAIL`         | For the seed | Admin account for `pnpm seed:admin`           |
-| `ADMIN_PASSWORD`      | For the seed | Admin password for `pnpm seed:admin`          |
+| Variable                 | Required     | What                                             |
+| ------------------------ | ------------ | ------------------------------------------------ |
+| `DATABASE_URL`           | Yes          | Postgres connection string                       |
+| `JWT_SECRET`             | Yes          | Secret that signs the session token              |
+| `SESSION_TTL_SECONDS`    | Yes          | Session length, for both the token and cookie    |
+| `PRICE_PER_KW_EUR`       | Yes          | System price per kW for new quotes               |
+| `PORT`                   | No (`3001`)  | API port                                         |
+| `LOG_LEVEL`              | No (`info`)  | Winston log level                                |
+| `ADMIN_EMAIL`            | For the seed | Admin account for `pnpm seed:admin`              |
+| `ADMIN_PASSWORD`         | For the seed | Admin password for `pnpm seed:admin`             |
+| `APP_URL`                | Yes          | Frontend URL, for the Keycloak redirect URI      |
+| `KEYCLOAK_URL`           | Yes          | Realm URL as the browser sees it (token issuer)  |
+| `KEYCLOAK_INTERNAL_URL`  | No           | Realm URL the API uses, if different (in Docker) |
+| `KEYCLOAK_CLIENT_ID`     | Yes          | Keycloak client                                  |
+| `KEYCLOAK_CLIENT_SECRET` | Yes          | Keycloak client secret                           |
 
 Changing the price only affects new quotes, since each quote stores its own price and offers.
+
+## Keycloak sign-in
+
+`docker compose up` starts Keycloak on http://localhost:8080 and imports the realm from `keycloak/green-quote-realm.json`. **Sign in with Keycloak** on the sign-in page uses these demo users:
+
+| Email                  | Password        | Role  |
+| ---------------------- | --------------- | ----- |
+| `kc-user@example.com`  | `kc-user-pass`  | user  |
+| `kc-admin@example.com` | `kc-admin-pass` | admin |
+
+New users can also register on the Keycloak page. In the admin console (http://localhost:8080/admin, `admin` / `admin`), switch to the `green-quote` realm to manage users and roles: give a user the `admin` realm role and they become an app admin at their next sign-in.
+
+Keycloak keeps its data in its own `keycloak` database on the same Postgres. `postgres/init.sql` creates it the first time the Postgres volume is created. If your volume is older than that, create it once:
+
+```bash
+docker compose exec db psql -U postgres -c 'CREATE DATABASE keycloak'
+```
+
+The realm file is imported only when the realm doesn't exist yet, so later edits to `keycloak/green-quote-realm.json` are not applied to a running setup. To apply them, delete the realm in the admin console and restart Keycloak, or start from scratch with `docker compose down -v`.
+
+To test with a different Keycloak user, sign out of the app and also out of Keycloak at http://localhost:8080/realms/green-quote/protocol/openid-connect/logout; otherwise Keycloak signs you straight back in as the previous user.
+
+How it works: the API runs the OpenID Connect authorization code flow with PKCE (`GET /api/auth/keycloak/login` and `/callback`). It checks the `state`, exchanges the code, verifies the ID token's signature with the realm's public key, then finds or creates the local user and sets the same session cookie as a password sign-in. Keycloak's `admin` realm role becomes the app's admin role on every sign-in. A Keycloak user is matched by Keycloak id, or linked to an existing account by email only if Keycloak has verified that email.
 
 ## Tests and checks
 
 | Where    | Command                  | What                                                              |
 | -------- | ------------------------ | ----------------------------------------------------------------- |
-| Backend  | `pnpm test`              | Unit tests (70): pricing, auth, guards, validation, logging, DTOs |
+| Backend  | `pnpm test`              | Unit tests (78): pricing, auth, guards, validation, logging, DTOs |
 | Backend  | `pnpm test:e2e`          | Integration tests (13) against a real Postgres                    |
 | Backend  | `pnpm lint`              | oxlint with type-aware rules                                      |
 | Backend  | `pnpm format`            | Prettier                                                          |
@@ -141,15 +177,17 @@ The rules live in `src/pricing/pricing.constants.ts`.
 ## Project structure
 
 ```
-docker-compose.yml           Postgres, API and frontend
+docker-compose.yml           Postgres, Keycloak, API and frontend
+keycloak/                    Keycloak realm import (client, roles, demo users)
 green-quote-backend/       NestJS API
-  src/auth/                  Signup/signin, JWT cookie, guards and decorators
+  src/auth/                  Signup/signin, Keycloak sign-in, JWT cookie, guards and decorators
   src/users/                 User entity and service
   src/quotes/                Quote entity, DTOs, user and admin controllers, service
   src/pricing/               Pricing and offer calculation
   src/common/                Logger and global exception filter
   src/health/                Health check (Terminus)
-  src/database/              Data source and migrations
+  src/config/                Env validation
+  src/database/              Data source, migrations and admin seed
 green-quote-frontend/      Next.js app
   app/(public)/              Landing, sign in, sign up
   app/(app)/                 Signed-in pages: quotes, quote form and result, admin
@@ -173,11 +211,7 @@ green-quote-frontend/      Next.js app
 ## Assumptions
 
 - A quote always belongs to the signed-in user: name and email come from the account and can't be changed on the form. The address is entered per quote, since one user may have several properties.
-- Email and password auth is implemented directly; Keycloak (the bonus) is not.
-
-## What's next
-
-1. **Deploy on GCP Cloud Run** (API and frontend containers) with Cloud SQL for Postgres and secrets in Secret Manager
-2. **Token revocation and refresh tokens,** and rate limiting on sign-in
-3. **Search at scale:** trigram (`pg_trgm`) indexes on user name and email
-4. **Bonus features:** PDF export, an end-to-end test (Playwright), Keycloak
+- Email and password auth stays alongside Keycloak, since the spec asks for it as the baseline. A real product would likely move all sign-in to Keycloak.
+- Signing out clears the app session only; the Keycloak session stays, so the next Keycloak sign-in doesn't ask for the password again.
+- **Sign in with Keycloak** still asks for a username and password, on Keycloak's own page: that is the Keycloak sign-in, for a Keycloak account with its own password, and the app never sees it. It's skipped while a Keycloak session exists (single sign-on), and could be replaced by Google or GitHub sign-in or passkeys through realm configuration alone. Two password forms on one page can look confusing; a real product would usually keep only the Keycloak one.
+- Keycloak stores its data in its own `keycloak` database on the same Postgres server, kept apart from the app's `green_quote` tables. A production setup would give it a dedicated database user, or its own Postgres instance.

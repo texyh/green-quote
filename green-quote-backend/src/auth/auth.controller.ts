@@ -5,6 +5,8 @@ import {
   HttpCode,
   Logger,
   Post,
+  Query,
+  Req,
   Res,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -13,20 +15,22 @@ import {
   ApiConflictResponse,
   ApiCookieAuth,
   ApiCreatedResponse,
+  ApiExcludeEndpoint,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import type { CookieOptions, Response } from 'express';
+import type { CookieOptions, Request, Response } from 'express';
 import { UserResponseDto } from '../users/dto/user-response.dto';
-import { ACCESS_TOKEN_COOKIE } from './auth.constants';
+import { ACCESS_TOKEN_COOKIE, KEYCLOAK_LOGIN_COOKIE } from './auth.constants';
 import { AllowAnonymous } from './decorators/allow-anonymous.decorator';
 import { AuthResult, AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
 import type { AuthUser } from './guards/jwt-auth.guard';
+import { KeycloakLogin, KeycloakService } from './keycloak.service';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -38,6 +42,7 @@ export class AuthController {
 
   constructor(
     private readonly authService: AuthService,
+    private readonly keycloakService: KeycloakService,
     config: ConfigService,
   ) {
     this.sessionCookieOptions = {
@@ -91,6 +96,63 @@ export class AuthController {
   signOut(@Res({ passthrough: true }) res: Response): void {
     this.logger.log('POST /api/auth/signout');
     res.clearCookie(ACCESS_TOKEN_COOKIE, this.sessionCookieOptions);
+  }
+
+  @AllowAnonymous()
+  @Get('keycloak/login')
+  @ApiExcludeEndpoint()
+  keycloakLogin(@Res() res: Response): void {
+    this.logger.log('GET /api/auth/keycloak/login');
+    const login = this.keycloakService.createLogin();
+    res.cookie(
+      KEYCLOAK_LOGIN_COOKIE,
+      JSON.stringify({ state: login.state, codeVerifier: login.codeVerifier }),
+      { ...this.sessionCookieOptions, maxAge: 5 * 60 * 1000 },
+    );
+    res.redirect(login.url);
+  }
+
+  @AllowAnonymous()
+  @Get('keycloak/callback')
+  @ApiExcludeEndpoint()
+  async keycloakCallback(
+    @Query('code') code: string | undefined,
+    @Query('state') state: string | undefined,
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    this.logger.log('GET /api/auth/keycloak/callback');
+    const saved = req.cookies[KEYCLOAK_LOGIN_COOKIE] as string | undefined;
+    res.clearCookie(KEYCLOAK_LOGIN_COOKIE, this.sessionCookieOptions);
+
+    const login = saved
+      ? (JSON.parse(saved) as Pick<KeycloakLogin, 'state' | 'codeVerifier'>)
+      : undefined;
+    if (!code || !login || login.state !== state) {
+      this.logger.warn('Keycloak callback with a missing code or bad state');
+      res.redirect('/signin?error=keycloak');
+      return;
+    }
+
+    try {
+      const profile = await this.keycloakService.exchangeCode(
+        code,
+        login.codeVerifier,
+      );
+      const result = await this.authService.signInWithKeycloak(profile);
+      this.logger.log({
+        message: 'GET /api/auth/keycloak/callback succeeded',
+        userId: result.user.id,
+      });
+      this.setSessionCookie(res, result);
+      res.redirect(result.user.role === 'admin' ? '/admin/quotes' : '/quotes');
+    } catch (error) {
+      this.logger.warn({
+        message: 'Keycloak sign-in failed',
+        reason: error instanceof Error ? error.message : String(error),
+      });
+      res.redirect('/signin?error=keycloak');
+    }
   }
 
   @Get('me')

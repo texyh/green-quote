@@ -9,7 +9,11 @@ describe('AuthService', () => {
   const usersService = {
     findById: jest.fn(),
     findByEmail: jest.fn(),
+    findByKeycloakId: jest.fn(),
     create: jest.fn(),
+    save: jest.fn((user: Partial<User>) =>
+      Promise.resolve({ id: 'user-1', ...user }),
+    ),
   };
   const jwtService = { signAsync: jest.fn().mockResolvedValue('signed-token') };
   const service = new AuthService(
@@ -122,6 +126,80 @@ describe('AuthService', () => {
       await expect(service.me('deleted-user')).rejects.toBeInstanceOf(
         UnauthorizedException,
       );
+    });
+  });
+
+  describe('signIn without a password', () => {
+    it('rejects a Keycloak-only user signing in with a password', async () => {
+      usersService.findByEmail.mockResolvedValue(
+        Object.assign(await existingUser(), { passwordHash: null }),
+      );
+
+      await expect(
+        service.signIn({ email: 'jane@example.com', password: 'anything' }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+  });
+
+  describe('signInWithKeycloak', () => {
+    const profile = {
+      keycloakId: 'kc-1',
+      email: 'jane@example.com',
+      emailVerified: true,
+      fullName: 'Jane Doe',
+      isAdmin: false,
+    };
+
+    it('creates a user the first time someone signs in', async () => {
+      usersService.findByKeycloakId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+
+      const result = await service.signInWithKeycloak(profile);
+
+      expect(usersService.save).toHaveBeenCalledWith({
+        id: undefined,
+        fullName: 'Jane Doe',
+        email: 'jane@example.com',
+        keycloakId: 'kc-1',
+        role: 'user',
+      });
+      expect(result.accessToken).toBe('signed-token');
+    });
+
+    it('links an existing account with the same verified email', async () => {
+      usersService.findByKeycloakId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(await existingUser());
+
+      await service.signInWithKeycloak(profile);
+
+      expect(usersService.save).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'user-1', keycloakId: 'kc-1' }),
+      );
+    });
+
+    it('refuses to link an existing account when the email is not verified', async () => {
+      usersService.findByKeycloakId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(await existingUser());
+
+      await expect(
+        service.signInWithKeycloak({ ...profile, emailVerified: false }),
+      ).rejects.toBeInstanceOf(ConflictException);
+      expect(usersService.save).not.toHaveBeenCalled();
+    });
+
+    it('takes the role from Keycloak on every sign-in', async () => {
+      usersService.findByKeycloakId.mockResolvedValue(await existingUser());
+
+      const result = await service.signInWithKeycloak({
+        ...profile,
+        isAdmin: true,
+      });
+
+      expect(result.user.role).toBe('admin');
+      expect(jwtService.signAsync).toHaveBeenCalledWith({
+        sub: 'user-1',
+        role: 'admin',
+      });
     });
   });
 });

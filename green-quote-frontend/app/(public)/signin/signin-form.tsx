@@ -3,14 +3,20 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Alert, Button, Form, Input, Typography } from "antd";
+import { Alert, Button, Divider, Form, Input, Typography } from "antd";
 import { ApiError } from "@/lib/api";
 import { signIn, SignInRequest } from "@/lib/auth";
 
-export default function SignInForm() {
+export default function SignInForm({
+  keycloakFailed,
+}: {
+  keycloakFailed: boolean;
+}) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<string | undefined>(
+    keycloakFailed ? "Could not sign you in with Keycloak." : undefined,
+  );
 
   const onFinish = async (values: SignInRequest) => {
     setSubmitting(true);
@@ -56,6 +62,10 @@ export default function SignInForm() {
           Sign in
         </Button>
       </Form>
+      <Divider plain>or</Divider>
+      <Button block href="/api/auth/keycloak/login">
+        Sign in with Keycloak
+      </Button>
       <Typography.Paragraph style={{ marginTop: 16 }}>
         No account yet? <Link href="/signup">Sign up</Link>
       </Typography.Paragraph>
